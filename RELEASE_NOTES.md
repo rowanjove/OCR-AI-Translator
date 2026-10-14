@@ -12,13 +12,13 @@ v0.9.1-preview is a stability-fix candidate, not a Stable release.
 
 - Saving Provider settings and using paste translation no longer depends on Snipaste being installed. Starting OCR still validates the configured Snipaste executable and reports a clear error when it is unavailable.
 - New configurations and missing preference fields now default to automatic translation off and OCR candidate confirmation on. Explicit values in existing configurations remain unchanged.
-- The GUI stability test now uses a deterministic missing Snipaste path, measures settings cycles separately, and performs render warmup before its strict steady-state resource checks.
+- The GUI stability test now uses a deterministic missing Snipaste path and explicitly warms the first settings open/theme preview after final quiescence. Its strict 50-cycle settings and 100-cycle render resource assertions remain unchanged.
 
 ## Validation
 
 - Windows 10 x64 Release build: PASS.
 - Full local CTest: **9 PASS / 0 FAIL / 1 SKIP**. `native_clipboard_isolated` skipped because this host could not create a private window station (Win32 error 5); it did not access the user's clipboard.
-- `ui_stability_faults`: PASS in three consecutive runs and in the full suite. Steady-state process handles, GDI and USER counts did not grow. One process handle was added during warmup; its object type remains unidentified.
+- `ui_stability_faults`: PASS in three consecutive runs and in the full suite. First-use settings warmup added one GDI object; its source is unidentified. The measured 50 settings and 100 render cycles showed no resource growth. One process handle was also added during render warmup; its object type remains unidentified.
 - GitHub Actions for this candidate: see the run linked from the release after the source push.
 
 ## Known limits

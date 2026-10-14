@@ -73,7 +73,7 @@ Local CTest: $passed PASS / $failed FAIL / $skipped SKIP.
 Clipboard isolation skipped because CreateWindowStation returned Win32 error 5; the user's clipboard was not used.
 Hosted CI status: $HostedCiStatus
 $ciDisplay
-The steady-state UI resource gate passed three consecutive runs and in the full suite. A one-time process handle increment during render warmup remains unidentified.
+The steady-state UI resource gate passed three consecutive runs and in the full suite. First-use settings warmup added one GDI object and render warmup added one process handle; both object sources remain unidentified. The measured 50 settings and 100 render cycles had no growth.
 Real Snipaste OCR, live cloud Provider, Windows 11, clean-machine, physical IME and mixed-DPI acceptance remain UNVERIFIED.
 Unsigned x64 executable. No credentials, user configuration, OCR content, test tools or internal logs are included.
 "@ | Set-Content -LiteralPath (Join-Path $package 'PREVIEW.txt') -Encoding utf8

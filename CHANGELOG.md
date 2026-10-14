@@ -8,11 +8,11 @@ stage; current implementation and validation are in release readiness.
 ### Fixed
 - Saving Provider settings and using paste translation no longer depends on the optional Snipaste executable being installed; OCR startup still validates its configured executable.
 - New configurations and missing preference fields now default to automatic translation off and OCR candidate confirmation on. Explicit values in existing configurations remain unchanged.
-- Fixed the settings warmup failure in the GUI stability test by using a deterministic missing OCR path and keeping the strict steady-state resource assertions after render warmup.
+- Fixed the settings warmup failure in the GUI stability test by using a deterministic missing OCR path and explicitly warming the first settings open/theme preview after final quiescence. Strict measured resource assertions remain unchanged.
 
 ### Validation
 - Windows 10 x64 Release build passed; full CTest: 9 PASS / 0 FAIL / 1 SKIP. The clipboard-isolation test skipped because this host could not create a private window station (Win32 error 5).
-- `ui_stability_faults` passed three consecutive runs and in the full suite. A one-time process handle increment during warmup remains unexplained; measured steady state had no growth.
+- `ui_stability_faults` passed three consecutive runs and in the full suite. First-use settings warmup can add one GDI object; its source remains unidentified, while the following 50 settings cycles and 100 render cycles show no growth.
 - Windows 11, clean-machine, live Provider, real Snipaste OCR and physical IME/DPI coverage remain separately unverified.
 - This is a preview candidate, not a Stable release.
 

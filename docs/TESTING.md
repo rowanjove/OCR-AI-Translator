@@ -10,10 +10,14 @@ configuration: configure/build PASS; full CTest **9 PASS / 0 FAIL / 1 SKIP**
 `build/v091/ctest-release.xml` in the local validation workspace.
 
 `ui_stability_faults` passed in the full suite and in three consecutive repeat
-runs (111.25 seconds total). The settings-pressure phase had no resource growth. After render
-warmup, the measured 100-cycle phase had process handles 301→301, GDI 57→57,
-USER 65→65, and zero theme-brush deletion failures. One process handle was added
-during warmup; its object type is unknown, so its source is not claimed.
+runs (114.21 seconds total). After final quiescence, an explicit first-use
+settings open/theme-preview/cancel warmup records a GDI count change from 56 to
+57; its object source is unknown. The following strict 50-cycle settings phase
+measured GDI 57→55, USER 67→64 and process handles 300→300. After render warmup,
+the measured 100-cycle phase had process handles 301→301, GDI 57→57, USER 65→65,
+and zero theme-brush deletion failures. One process handle was added during
+render warmup (cycle 34 in this run); its object type is unknown, so its source
+is not claimed.
 
 Windows 11, clean-machine, real Snipaste OCR/clipboard, live cloud Provider and
 physical IME/DPI remain separate UNVERIFIED matrix items. The v0.9.1 candidate
