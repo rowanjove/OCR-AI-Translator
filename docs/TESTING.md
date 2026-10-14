@@ -1,8 +1,19 @@
 # Testing v0.9.0-preview
 
+## Current branded preview build (2026-10-14)
+
+OCR AI Translator: Release x64 build PASS, full local CTest **8 PASS / 1 FAIL /
+1 SKIP**, 98.87 seconds. GUI resource zero-growth assertion FAIL; clipboard
+isolation SKIP due to local permissions. Business assertions remain intact.
+Source names/metadata changed; the existing DPAPI entropy, config directory,
+mutex and window class identifiers remain compatible with previous versions.
+The owner explicitly authorized a public preview with these results disclosed.
+This authorization does not convert failed/unverified tests into PASS.
+
+
 ## First hosted Windows CI (2026-10-14)
 
-[Run 38578032811](https://github.com/rowanjove/Snipaste-AI-Translator/actions/runs/38578032811)
+[Run 38578032811](https://github.com/rowanjove/OCR-AI-Translator/actions/runs/38578032811)
 for source commit `5c86b249de3ffe60b98401bde2b323f53edcf62a`: audit/configure/Release
 build PASS; full CTest **9 PASS / 1 FAIL / 0 SKIP**, 34.23 seconds, exit 8.
 `native_clipboard_isolated` passed on the runner. `ui_stability_faults` failed

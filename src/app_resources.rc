@@ -14,11 +14,11 @@ BEGIN
     BEGIN
         BLOCK "040904B0"
         BEGIN
-            VALUE "FileDescription", "Snipaste AI Translator"
+            VALUE "FileDescription", "OCR AI Translator"
             VALUE "FileVersion", SAT_VERSION_STRING
             VALUE "InternalName", "Translator"
             VALUE "OriginalFilename", "Translator.exe"
-            VALUE "ProductName", "Snipaste AI Translator"
+            VALUE "ProductName", "OCR AI Translator"
             VALUE "ProductVersion", SAT_VERSION_STRING
         END
     END

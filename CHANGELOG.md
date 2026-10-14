@@ -1,9 +1,15 @@
 # Changelog
 
-Changes to Snipaste AI Translator. Historical entries describe their original
+Changes to OCR AI Translator. Historical entries describe their original
 stage; current implementation and validation are in release readiness.
 
 ## [0.9.0-preview] - 2026-10-14
+
+### Public preview update
+- Renamed public product/repository to OCR AI Translator / OCR-AI-Translator.
+- Chinese README is the default homepage; English moved to README.en.md.
+- Existing configuration/DPAPI/IPC identifiers preserved for compatibility.
+- Owner authorized publishing the preview ZIP with known automated failures disclosed.
 
 ### Added
 - Bilingual public README, current scope/architecture/API/testing documentation,

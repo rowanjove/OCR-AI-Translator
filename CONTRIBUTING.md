@@ -16,5 +16,5 @@ and Snipaste professional licensing are not prerequisites for CI. Document any
 manual/real-device evidence with OS, binary hash, steps and limitations.
 
 Before opening an issue or PR, remove personal text and secrets. Report reproducible bugs through the repository Issues page.
-Only source is publicly published; binary release approval is separate. Contributions intentionally submitted for inclusion use
+The owner authorized the v0.9.0-preview binary release with known test limitations disclosed. Contributions intentionally submitted for inclusion use
 Apache-2.0, subject to any explicit separate agreement. Preserve attribution.

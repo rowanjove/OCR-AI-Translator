@@ -1,6 +1,6 @@
 # Product scope for 0.9.0-preview
 
-Snipaste AI Translator is an extremely lightweight native Windows translation
+OCR AI Translator is an extremely lightweight native Windows translation
 and text-processing tool with extensible OCR inputs and custom AI APIs. The
 existing name and icon are retained; it is an independent project.
 

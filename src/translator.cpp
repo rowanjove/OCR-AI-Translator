@@ -57,7 +57,7 @@ UINT uiDpi(HWND window){
     return ::GetDpiForWindow(window);
 }
 const wchar_t* mainWindowClass(){return testMode()?L"SnipasteAITranslator.Test.Main.v1":L"SnipasteAITranslator.Main.v1";}
-const wchar_t* mainWindowTitle(){return testMode()?L"Snipaste AI Translator [Test]":L"Snipaste AI Translator";}
+const wchar_t* mainWindowTitle(){return testMode()?L"OCR AI Translator [Test]":L"OCR AI Translator";}
 std::wstring instanceName(bool ready){if(testMode())return ready?L"Local\\SnipasteAITranslator.Test.Ready.v1":L"Local\\SnipasteAITranslator.Test.Instance.v1";return ready?L"Local\\SnipasteAITranslator.Ready.v1":L"Local\\SnipasteAITranslator.Instance.v1";}
 constexpr UINT msgShowSettings=WM_APP+11;
 constexpr UINT msgNetworkChunk=WM_APP+12;
@@ -435,7 +435,7 @@ LRESULT CALLBACK sourceImeSubclass(HWND h,UINT message,WPARAM wp,LPARAM lp,UINT_
     trackImeMessage(h,message);return DefSubclassProc(h,message,wp,lp);
 }
 void createMainControls(){
-    auto title=control(0,L"STATIC",L"Translator",SS_LEFT,titleLabel,g->window);SendMessageW(title,WM_SETFONT,reinterpret_cast<WPARAM>(fontFor(g->window,true)),TRUE);
+    auto title=control(0,L"STATIC",L"OCR AI Translator",SS_LEFT,titleLabel,g->window);SendMessageW(title,WM_SETFONT,reinterpret_cast<WPARAM>(fontFor(g->window,true)),TRUE);
     control(0,L"STATIC",L"自动识别",SS_LEFT|SS_CENTERIMAGE,sourceLanguageLabel,g->window);control(0,L"STATIC",L"→",SS_CENTER|SS_CENTERIMAGE,languageArrowLabel,g->window);
     auto combo=control(WS_EX_STATICEDGE,L"COMBOBOX",L"",CBS_DROPDOWNLIST|WS_VSCROLL|WS_TABSTOP|CBS_OWNERDRAWFIXED|CBS_HASSTRINGS,targetCombo,g->window);
     SendMessageW(combo,CB_SETITEMHEIGHT,0,px(g->window,30));SendMessageW(combo,CB_SETITEMHEIGHT,static_cast<WPARAM>(-1),px(g->window,30));
@@ -467,7 +467,7 @@ void layoutMain(){
     if(!g->window)return;HWND w=g->window;RECT r{};GetClientRect(w,&r);const int dpi=static_cast<int>(uiDpi(w));auto d=[&](int v){return ui::scale(v,dpi);};
     const auto frame=ui::mainFrame(r.right,r.bottom,dpi,g->editing);const int margin=d(24),bh=d(36),gap=d(6);
     auto move=[&](int id,int x,int y,int width,int height){SetWindowPos(uiItem(w,id),nullptr,x,y,std::max(0,width),std::max(0,height),SWP_NOZORDER|SWP_NOACTIVATE|SWP_NOCOPYBITS);};
-    move(titleLabel,margin+d(36),d(16),d(180),d(32));
+    move(titleLabel,margin+d(36),d(16),d(320),d(32));
     move(mainClose,r.right-margin-bh,d(12),bh,bh);move(mainMinimize,r.right-margin-bh*2-gap,d(12),bh,bh);move(mainPin,r.right-margin-bh*3-gap*2,d(12),bh,bh);
     const auto language=ui::languageRow(r.right,dpi);
     for(const auto& placement:{std::pair{sourceLanguageLabel,language.source},std::pair{languageArrowLabel,language.arrow},std::pair{targetCombo,language.target},std::pair{mainTranslateButton,language.translate}}){const auto& box=placement.second;move(placement.first,box.x,box.y,box.width,box.height);}
@@ -1269,7 +1269,7 @@ void updateThinkingModeHint(HWND w,std::wstring_view baseUrl,std::wstring_view m
     uiSetText(w,settingThinkingMode+2000,hint);
 }
 constexpr const wchar_t* helpText=
-    L"关于\r\nSnipaste AI Translator " SAT_VERSION_WIDE L"\r\n一款极轻量、可扩展 OCR 来源、支持自定义 AI 模型的 Windows 翻译与文本处理工具。采用 C++20 与 Win32，关闭后无本工具常驻进程。当前 Snipaste OCR 适配器仍待实机验收，本项目是独立工具。Apache-2.0 许可。\r\n\r\n"
+    L"关于\r\nOCR AI Translator " SAT_VERSION_WIDE L"\r\n一款极轻量、可扩展 OCR 来源、支持自定义 AI 模型的 Windows 翻译与文本处理工具。采用 C++20 与 Win32，关闭后无本工具常驻进程。当前 Snipaste OCR 适配器仍待实机验收，本项目是独立工具。Apache-2.0 许可。\r\n\r\n"
     L"快速开始\r\n按 Ctrl+V 粘贴文字，选择目标语言后翻译。需要配置模型时，打开模型与 API，填写服务地址、模型 ID 和 API Key。\r\n\r\n"
     L"截图翻译\r\n当前 OCR 来源为 Snipaste。在“常规”页设置 OCR 来源可执行文件路径，再点“截图翻译”框选文字。开启候选确认时先核对文字；关闭时自动采用，并按“自动翻译”设置处理。原文到达后会显示窗口，也可点击目标语言后的“翻译”手动提交。按 Esc 取消等待。\r\n\r\n"
     L"模型与 API\r\n服务地址需兼容 OpenAI Chat Completions。可管理多个模型配置，并分别绑定翻译和改写用途。API Key 使用当前 Windows 用户的 DPAPI 加密保存。测试连接会发送少量请求并消耗 API 用量；保存可保留配置，取消会丢弃本次未保存的修改。\r\n\r\n"
@@ -1946,7 +1946,7 @@ int runDiagnostics(){
     const auto configPath=config.folder/L"config.json";
     const bool configExists=GetFileAttributesW(configPath.c_str())!=INVALID_FILE_ATTRIBUTES;
     bool hasError=false;const std::wstring report=formatDiagnosticReport(config,configExists,hasError);clearConfigSecrets(config);
-    MessageBoxW(nullptr,report.c_str(),L"Snipaste AI Translator · 诊断",MB_OK|(hasError?MB_ICONWARNING:MB_ICONINFORMATION));
+    MessageBoxW(nullptr,report.c_str(),L"OCR AI Translator · 诊断",MB_OK|(hasError?MB_ICONWARNING:MB_ICONINFORMATION));
     return hasError?2:0;
 }
 bool forwardInstance(const Args&a){

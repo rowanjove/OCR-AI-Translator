@@ -1,64 +1,56 @@
-# v0.9.0-preview — release notes draft
+# OCR AI Translator v0.9.0-preview
 
-**Unpublished local candidate. Public Pre-release: NO-GO; Stable: NO-GO.**
-This is a diagnostic preview with an unresolved GUI resource-stability gate.
-The owner approved source-only publication on 2026-10-14. No binary release
-or candidate ZIP/EXE upload is authorized.
+原生 Windows OCR／AI 翻译与文本处理工具的首个公开预发布包。
+产品采用通用名称，Snipaste 是目前实现的 OCR 适配器；后续计划接入其他 OCR 工具并探索内置 OCR。
+粘贴翻译独立可用，未来计划不作为本版已支持功能。
 
-Snipaste AI Translator is an extremely lightweight native Windows translation
-and text-processing tool with extensible OCR sources and custom AI APIs.
-Paste translation works independently of OCR. Snipaste is the only implemented
-OCR adapter, still awaiting real integration acceptance. This is an independent
-project and is not an official Snipaste plugin.
+## 下载与运行
 
-## Features
+- 下载 `OCR-AI-Translator-v0.9.0-preview-Win10-x64.zip`。
+- 使用同页 `OCR-AI-Translator-v0.9.0-preview-SHA256SUMS.txt` 校验，解压后运行 `Translator.exe`。
+- 打开设置 → 模型与 API，填写自己的服务地址、模型名和 API Key，随后粘贴文字即可使用。
+- 无需安装器，通常无需管理员权限。当前为 x64／未签名预发布版。
+- 中文说明在包内 `USER_GUIDE.zh-CN.md`；源码主页为中文，英文在 `README.en.md`。
 
-- Native C++20/Win32 two-pane text UI, light/dark/system theme and source editing.
-- OpenAI Chat Completions-compatible streaming/JSON, multiple API profiles and
-  separate translation/rewrite roles.
-- Five rewrite styles, naturalization, scoped custom instructions and session
-  version rollback. Naturalization does not promise to evade AI detection.
-- Per-profile thinking mode; forced switch only for the exact recognized
-  official DeepSeek endpoint/model. Other configurations use automatic.
-- Explicit-path Snipaste capture, bounded waiting and candidate confirmation.
-  OCR→exec one-step integration remains HOLD; other OCR sources are plans.
+## 本版功能
 
-## Install and verify
+流式翻译、原文编辑／恢复、目标语言选择、五种 AI 改写、自然化表达、三范围自定义提示词、
+会话版本回退、多模型 Profile 与翻译／改写角色绑定、深浅主题和工具栏配置。
+思考模式强制开关仅适用于代码识别的 DeepSeek 官方端点及 deepseek-flash，其他接口使用自动。
 
-Candidate file: `Translator-v0.9.0-preview-Win10-x64.zip`. Verify the adjacent
-SHA256SUMS.txt, extract to a writable folder and run Translator.exe. Configure
-an HTTPS service, exact model ID and your API key locally. Paste text to begin.
-For OCR, separately install/license/start Snipaste professional desktop edition
-and configure its exact EXE path. Enable candidate confirmation and check input.
-No installer or bundled model is supplied. The EXE is unsigned.
+## Snipaste 调用
 
-Windows 10 x64 build 19045 is the current tested environment; Windows 11 and
-clean-machine acceptance remain UNVERIFIED. Windows system DLLs and RichEdit
-are required, with static CRT; no Qt/Electron/WebView2/Python runtime dependency.
-The separately running OCR tool has its own background process.
+先安装、授权并启动 Snipaste 专业版桌面程序，在常规设置选择其准确 EXE 路径。
+点击“截图翻译”或使用 `Translator.exe --snip`；适配器调用 `snip -o ocr_clipboard`。
+建议开启候选确认，核对文字后采用。Esc 取消本工具等待，不结束已有 Snipaste。
+也可以先手动 OCR，再用 `Translator.exe --clipboard-text` 载入。
+OCR→exec 一步联动仍待验证；本项目不是 Snipaste 官方插件。
 
-## Actual test state and limits
+## 系统与已知限制
 
-Release x64 build: PASS. Full local CTest: **8 PASS / 1 FAIL / 1 SKIP**, 96.09 s.
-`ui_stability_faults` fails the strict GDI/USER/kernel resource-growth assertion.
-`native_clipboard_isolated` is environment SKIP (Win32 5), not a pass.
-All other registered local fixtures passed. Build/Mock/native automation do
-not establish live OCR, cloud-provider, human IME or physical multi-DPI success.
-Hosted GitHub CI has not run. The package contains no real keys, user config,
-DPAPI ciphertext, private text, test executable, internal log or build cache.
+本机已构建／自动化测试环境：Windows 10 x64 build 19045。
+Windows 11、真人 IME／物理混合 DPI／多屏、干净机和真实 Provider／OCR 完整矩阵尚未完成验收。
+Release 构建 PASS；本版完整 CTest **8 PASS / 1 FAIL / 1 SKIP，98.87 秒**。
+`ui_stability_faults` 的严格 GUI 资源零增长断言仍失败，`native_clipboard_isolated` 因本机权限 SKIP。
+此前 GitHub Runner 为 9 PASS / 1 FAIL，压力测试在设置预热断言失败。
+所有断言均保留，没有把失败改成通过；用户在知悉这些结果后明确批准发布此预览版。
+这是预发布版，不宣称稳定版或全面验收完成。
 
-Before any public binary pre-release, resolve or explicitly reassess the failed
-stability gate, verify hosted CI and applicable MSVC redistribution rights, and
-record corresponding real-device acceptance. This draft is not stable-release
-approval. Source-only publication can be separately approved after owner review.
+## 隐私、依赖和反馈
 
-Apache-2.0 was selected by the owner; existing icon rights were confirmed.
-See LICENSE, NOTICE, THIRD_PARTY_NOTICES.md and the readiness report.
-To uninstall, close and remove the extracted directory; local settings remain
-until deliberately removed by the user.
+包内不含真实 API Key、用户 config.json、DPAPI 密文、私人 OCR／翻译内容、内部日志或测试 EXE。
+配置继续沿用 `%LOCALAPPDATA%/SnipasteAITranslator` 兼容路径，以读取既有设置与凭据。
+AI 操作会把所选文本发给配置的服务。不要把个人配置、密文或正文附在 Issue 中。
+原生 C++20／Win32、静态 CRT，运行时仅引用 Windows 系统 DLL；不带 Electron、Qt、WebView2 或模型。
+Apache-2.0；资源／工具链条件见包内 THIRD_PARTY_NOTICES.md。
 
-## Feedback
+反馈：[GitHub Issues](https://github.com/rowanjove/OCR-AI-Translator/issues)。
 
-Report sanitized reproducible steps, OS and binary hash through
-[GitHub Issues](https://github.com/rowanjove/Snipaste-AI-Translator/issues). Never attach API keys,
-DPAPI files, user configuration, private OCR/translation content or HTTP dumps.
+## English
+
+OCR AI Translator is a lightweight native Windows AI translation and text-processing app.
+This unsigned Windows x64 preview supports paste translation and the current Snipaste OCR adapter.
+More OCR adapters and built-in OCR are plans. Extract the ZIP, run Translator.exe, and configure your own API.
+Release build passed; local CTest: 8 PASS / 1 FAIL / 1 SKIP. GUI stress assertions remain failing and disclosed.
+The owner explicitly authorized this preview publication. No credentials, private data, test executables or logs
+are bundled. See README.en.md for English documentation; report sanitized issues through the link above.

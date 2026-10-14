@@ -18,8 +18,8 @@ authorized for public use. Existing names and ownership have been retained.
 No third-party executable, model, font, Snipaste installation, certificate,
 private key or runtime service is included. A dependency scan is evidence of
 imports, not a legal certification. Public source is ready for owner review;
-public binary distribution remains conditional on MSVC redistribution rights
-and the release gates in [readiness](GITHUB_RELEASE_READINESS.md).
+the owner authorized preview publication with disclosed test limitations.
+Applicable MSVC redistribution terms still apply; see [readiness](GITHUB_RELEASE_READINESS.md).
 
 License text: [Apache Software Foundation](https://www.apache.org/licenses/LICENSE-2.0).
 Toolchain references: [Microsoft redistribution guidance](https://learn.microsoft.com/en-us/cpp/windows/redistributing-visual-cpp-files).

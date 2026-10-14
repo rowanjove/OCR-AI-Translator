@@ -1,6 +1,6 @@
 param(
-    [string]$BuildDirectory = 'build/github-preview',
-    [string]$TestReport = 'out/github-readiness/ctest.xml',
+    [string]$BuildDirectory = 'build/ocr-ai-preview',
+    [string]$TestReport = 'out/ocr-ai-release/ctest-final.xml',
     [switch]$AllowFailingPreview
 )
 $ErrorActionPreference = 'Stop'
@@ -13,7 +13,7 @@ $failed = @($cases | Where-Object { $null -ne $_.failure }).Count
 $skipped = @($cases | Where-Object { $null -ne $_.skipped }).Count
 $passed = $cases.Count - $failed - $skipped
 if ($cases.Count -ne 10) { throw 'Expected all 10 registered CTest cases.' }
-if ($failed -gt 0 -and -not $AllowFailingPreview) { throw 'CTest failed. Only an explicit local diagnostic preview may be packaged with -AllowFailingPreview.' }
+if ($failed -gt 0 -and -not $AllowFailingPreview) { throw 'CTest failed. An explicit preview authorization is required to package with -AllowFailingPreview.' }
 $version = (Get-Item -LiteralPath $exe).VersionInfo.ProductVersion
 if ($version -ne '0.9.0-preview') { throw 'Unexpected executable version.' }
 $bytes = [IO.File]::ReadAllBytes($exe)
@@ -27,7 +27,7 @@ foreach ($marker in @('SAT_CONFIG_DIR','SAT_TEST_MODE','SAT_TEST_GDI_TRACE','--m
 $signature = Get-AuthenticodeSignature -LiteralPath $exe
 if ($signature.Status -ne 'NotSigned') { throw 'Update release documentation for the actual signature state before packaging.' }
 $release = Join-Path $root 'release'
-$package = Join-Path $release 'Translator-v0.9.0-preview-Win10-x64'
+$package = Join-Path $release 'OCR-AI-Translator-v0.9.0-preview-Win10-x64'
 $archive = $package + '.zip'
 if ((Test-Path -LiteralPath $package) -or (Test-Path -LiteralPath $archive)) { throw 'Candidate already exists; do not overwrite historical packages.' }
 $null = New-Item -ItemType Directory -Force -Path $release
@@ -39,9 +39,9 @@ foreach ($name in @('RELEASE_NOTES.md','LICENSE','NOTICE','config.example.json')
 }
 Copy-Item -LiteralPath (Join-Path $root 'docs/THIRD_PARTY_NOTICES.md') -Destination $package
 @'
-# Snipaste AI Translator v0.9.0-preview 使用说明
+# OCR AI Translator v0.9.0-preview 使用说明
 
-这是本地诊断候选，不是稳定版，也尚未获准公开 Pre-release。
+这是 v0.9.0-preview 预发布版，已由项目所有者批准公开。
 Win10 x64 是当前自动化环境；Win11／干净机／真人输入法与物理多屏尚未验证。
 EXE 未签名。解压到可写目录，直接运行 Translator.exe，通常无需管理员权限。
 
@@ -60,21 +60,22 @@ OCR 需要用户自己的 Snipaste 专业版桌面安装和授权，先启动，
 Esc 取消本工具等待，不结束已有 Snipaste。OCR→exec 一步联动仍 HOLD。
 粘贴翻译不依赖 Snipaste。其他 OCR 来源尚未实现。
 
-已知阻断：GUI 严格资源零增长门失败；不要把本候选当成稳定生产版。
+已知问题：部分 GUI 压力测试失败，完整结果在 BUILD_INFO.json 中如实记录。
 完整测试统计见 PREVIEW.txt / BUILD_INFO.json；依赖见 DEPENDENCIES.txt。
-云端 Provider／真人 IME／物理 DPI／Win11／干净机及远程 CI 仍 UNVERIFIED。
+云端 Provider／真人 IME／物理 DPI／Win11／干净机的完整验收仍待完成。
 Apache-2.0 许可见 LICENSE / NOTICE；资源与工具链条件见 THIRD_PARTY_NOTICES.md。
 
 关闭最后窗口后本工具退出，用户的 OCR 软件可能独立常驻。
 卸载：关闭程序，删除解压目录。配置仍在 %LOCALAPPDATA%/SnipasteAITranslator；
 仅明确希望删除自己的数据时才手动删除该目录。不要分享该配置或 secret-*.bin。
-反馈通过所有者既有渠道，附系统版本、EXE hash、脱敏步骤，勿附 OCR 内容或 Key。
+反馈请访问 https://github.com/rowanjove/OCR-AI-Translator/issues，附系统版本、EXE hash、脱敏步骤，勿附 OCR 内容或 Key。
 
 包内 SHA256SUMS.txt 校验有效载荷；ZIP 自身的哈希在包外同名校验清单。
 '@ | Set-Content -LiteralPath (Join-Path $package 'USER_GUIDE.zh-CN.md') -Encoding utf8
 @"
-v0.9.0-preview — LOCAL RELEASE CANDIDATE ONLY
-Stable: NO-GO. Public pre-release: NO-GO until release gates are closed.
+OCR AI Translator v0.9.0-preview — PRE-RELEASE
+User-authorized preview publication. Automated test failures are disclosed below.
+This is not a stable release.
 Current CTest: $passed PASS / $failed FAIL / $skipped SKIP.
 Unsigned binary; real OCR, cloud Provider, human IME, physical mixed DPI,
 Windows 11, clean-machine and hosted CI acceptance remain UNVERIFIED.
@@ -110,10 +111,10 @@ $info = [ordered]@{
     signature = [string]$signature.Status; tests = @{ PASS=$passed; FAIL=$failed; SKIP=$skipped }
     junit_sha256 = (Get-FileHash -LiteralPath $testPath -Algorithm SHA256).Hash
     test_report_for_build = $BuildDirectory; dependencies = $dependencies
-    system_dynamic_dependency = 'Msftedit.dll'; hosted_ci = 'UNVERIFIED'
+    system_dynamic_dependency = 'Msftedit.dll'; hosted_ci = 'Prior run: 9 PASS / 1 FAIL; latest run recorded separately'
     source_inventory_sha256 = (Get-FileHash -LiteralPath (Join-Path $root 'docs/PUBLIC_FILES.txt')).Hash
     build_source_hashes = $sourceHashes
-    public_pre_release = 'NO-GO'; stable = 'NO-GO'; paid_provider_calls = 0
+    public_pre_release = 'USER_AUTHORIZED'; stable = 'NOT_STABLE'; paid_provider_calls = 0
 }
 $info | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $package 'BUILD_INFO.json') -Encoding utf8
 Get-ChildItem -LiteralPath $package -File | Sort-Object Name | ForEach-Object {
@@ -128,7 +129,7 @@ foreach ($file in Get-ChildItem -LiteralPath $package -File) {
     if ((Get-FileHash -LiteralPath $file.FullName).Hash -ne (Get-FileHash -LiteralPath (Join-Path $unpacked $file.Name)).Hash) { throw 'Extracted file differs.' }
 }
 (Get-FileHash -LiteralPath $archive).Hash + '  ' + (Split-Path -Leaf $archive) |
-    Set-Content -LiteralPath (Join-Path $release 'SHA256SUMS.txt') -Encoding ascii
+    Set-Content -LiteralPath (Join-Path $release 'OCR-AI-Translator-v0.9.0-preview-SHA256SUMS.txt') -Encoding ascii
 $report = [ordered]@{version=$version; archive=Split-Path -Leaf $archive; archive_bytes=(Get-Item -LiteralPath $archive).Length; archive_sha256=(Get-FileHash -LiteralPath $archive).Hash; executable_sha256=$info.executable_sha256; executable_bytes=$bytes.Length; files=@(Get-ChildItem -LiteralPath $package -File | Select-Object -ExpandProperty Name); extraction_hashes_match=$true; machine='8664'; signature=[string]$signature.Status; dependencies=$dependencies; tests=$info.tests}
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $root "$BuildDirectory/package-verification.json") -Encoding utf8
 $report | ConvertTo-Json -Depth 5

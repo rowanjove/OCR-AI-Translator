@@ -166,7 +166,7 @@ std::wstring protect(const std::wstring& secret,const std::filesystem::path& fol
     std::string bytes=json::encode(secret);struct PlainWipe{std::string& s;~PlainWipe(){if(!s.empty())SecureZeroMemory(s.data(),s.size());}}plainWipe{bytes};if(bytes.size()>16*1024)throw std::runtime_error("API key exceeds size limit");
     DATA_BLOB input{static_cast<DWORD>(bytes.size()),reinterpret_cast<BYTE*>(bytes.data())};
     DATA_BLOB entropy{static_cast<DWORD>(sizeof(entropyText)),reinterpret_cast<BYTE*>(const_cast<wchar_t*>(entropyText))},output{};
-    if(!CryptProtectData(&input,L"Snipaste AI Translator API key",&entropy,nullptr,nullptr,CRYPTPROTECT_UI_FORBIDDEN,&output))throw std::runtime_error("DPAPI encryption failed");
+    if(!CryptProtectData(&input,L"OCR AI Translator API key",&entropy,nullptr,nullptr,CRYPTPROTECT_UI_FORBIDDEN,&output))throw std::runtime_error("DPAPI encryption failed");
     struct Wipe { DATA_BLOB* b; ~Wipe(){if(b->pbData){SecureZeroMemory(b->pbData,b->cbData);LocalFree(b->pbData);}}} wipe{&output};
     unsigned char id[16]{};if(BCryptGenRandom(nullptr,id,sizeof(id),BCRYPT_USE_SYSTEM_PREFERRED_RNG)!=0)throw std::runtime_error("credential id generation failed");
     static constexpr wchar_t hex[]=L"0123456789abcdef";std::wstring ref;for(auto b:id){ref+=hex[b>>4];ref+=hex[b&15];}
