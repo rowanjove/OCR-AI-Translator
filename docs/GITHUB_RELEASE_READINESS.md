@@ -67,7 +67,10 @@ Release 全目标构建 PASS，静态 CRT、C++20、`/W4 /WX`。
 包大小：447257 bytes；SHA-256：`87F102711F7775E32E5763D392279F3D9AF14E28D8D35E1126A7847A79644834`。
 EXE SHA-256：`6E154611F949D2865B6892342E43BC9011707F2BA19687C5971082FAACA98A86`。
 本地 ZIP CRC、包内／包外 SHA-256、解压逐文件比对、源码／JUnit hash 和敏感模式扫描均 PASS。
-解压后的生产程序真实启动／关闭 PASS，配置／凭据未改变；远程资产核验将在上传后记录。
+解压后的生产程序真实启动／关闭 PASS，配置／凭据未改变。
+远程 Release 已公开（isDraft=false／isPrerelease=true），2 个资产均完成下载回读；
+GitHub 资产 digest、下载文件与本地文件的 SHA-256／大小逐项一致，PASS。
+Release tag 指向 `518c5eb30483869b698b1b3ee5f0094d654acb67`，对应本次构建源码。
 报告不复制到 ZIP 内，避免循环哈希。
 详细步骤和实际测试状态见 [RELEASE_NOTES.md](../RELEASE_NOTES.md) 与 [TESTING.md](TESTING.md)。
 
