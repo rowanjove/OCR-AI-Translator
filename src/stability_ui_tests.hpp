@@ -115,22 +115,28 @@ void testFinalStability(){
     const DWORD gdiBeforeSettings=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userBeforeSettings=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
     auto brushesBefore=snapshotStabilityBrushes();
     DWORD handlesBeforeSettings=0;GetProcessHandleCount(GetCurrentProcess(),&handlesBeforeSettings);
-    json::Value::Array settingsSamples;
+    json::Value::Array settingsSamples,settingsStageSamples;
+    auto recordSettingsStage=[&](int cycle,const char* phase){DWORD handles=0;GetProcessHandleCount(GetCurrentProcess(),&handles);json::Value::Object sample;sample["cycle"]=static_cast<double>(cycle);sample["phase"]=phase;sample["gdi"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS));sample["user"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS));sample["handles"]=static_cast<double>(handles);settingsStageSamples.emplace_back(std::move(sample));};
     for(int i=0;i<50;++i){
+        if(i<2)recordSettingsStage(i+1,"before_open");
         openSettings();require(g->settings&&IsWindow(g->settings),"settings creation failed in stress loop");
+        if(i<2)recordSettingsStage(i+1,"after_open");
         uiMessage(g->settings,settingTheme,CB_SETCURSEL,i%2?1:2,0);SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(settingTheme,CBN_SELCHANGE),0);
+        if(i<2)recordSettingsStage(i+1,"after_theme_preview");
         const auto liveTheme=g->config.theme;
         if(i%2==0){SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(settingCancel,BN_CLICKED),0);require(g->config.theme==liveTheme,"settings cancellation committed its preview");}
-        else{SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(settingSave,BN_CLICKED),0);require(!g->settings,"settings save failed in stress loop");auto loaded=loadConfig();require(!loaded.damagedConfig&&loaded.theme==g->config.theme&&loaded.translationProfileId==g->config.translationProfileId,"settings reload differs from committed data");clearConfigSecrets(loaded);}
+        else{SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(settingSave,BN_CLICKED),0);require(!g->settings,"settings save failed in stress loop");if(i<2)recordSettingsStage(i+1,"after_save_close");auto loaded=loadConfig();require(!loaded.damagedConfig&&loaded.theme==g->config.theme&&loaded.translationProfileId==g->config.translationProfileId,"settings reload differs from committed data");clearConfigSecrets(loaded);if(i<2)recordSettingsStage(i+1,"after_reload");}
+        if(i%2==0&&i<2)recordSettingsStage(i+1,"after_cancel_close");
         require(!g->settings&&!g->help,"settings/help window survived close");
         pumpPostedUiMessages();
+        if(i<2)recordSettingsStage(i+1,"after_pump");
         if(i==0||i==1||i==9||i==24||i==49){DWORD handles=0;GetProcessHandleCount(GetCurrentProcess(),&handles);json::Value::Object sample;sample["cycle"]=static_cast<double>(i+1);sample["gdi"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS));sample["user"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS));sample["handles"]=static_cast<double>(handles);settingsSamples.emplace_back(std::move(sample));}
     }
     const DWORD gdiSettings=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userSettings=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
     DWORD handlesAfterSettings=0;GetProcessHandleCount(GetCurrentProcess(),&handlesAfterSettings);
     if(gdiSettings>gdiBeforeSettings||userSettings>userBeforeSettings||handlesAfterSettings>handlesBeforeSettings){
         const std::string counts="settings_resource_counts handles="+std::to_string(handlesBeforeSettings)+"->"+std::to_string(handlesAfterSettings)+" gdi="+std::to_string(gdiBeforeSettings)+"->"+std::to_string(gdiSettings)+" user="+std::to_string(userBeforeSettings)+"->"+std::to_string(userSettings);
-        const std::string diagnostic=counts+" samples="+json::stringify(json::Value(std::move(settingsSamples)));
+        const std::string diagnostic=counts+" samples="+json::stringify(json::Value(std::move(settingsSamples)))+" stages="+json::stringify(json::Value(std::move(settingsStageSamples)));
         require(false,diagnostic.c_str());
     }
     // Re-prime rendering after the settings stress loop, which commits theme changes.
