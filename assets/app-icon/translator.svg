@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Translator — paired documents</title>
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="#8895A3"/>
+  <path d="M139 82 198 93q7 2 7 10v75q0 8-7 10l-56 13q-10 2-10-9v-49l16-16-16-16V91q0-11 7-9Z" fill="#58C9F2"/>
+  <path d="m54 70 63-18q15-4 15 10v50l16 16-16 16v42q0 10-11 8l-66-13q-9-2-9-11V81q0-9 8-11Z" fill="#F8FAFC"/>
+  <g fill="#35414C">
+    <rect x="65" y="91" width="42" height="10" rx="5"/>
+    <rect x="65" y="114" width="42" height="10" rx="5"/>
+    <rect x="65" y="137" width="42" height="10" rx="5"/>
+    <rect x="158" y="108" width="30" height="10" rx="5"/>
+    <rect x="158" y="130" width="30" height="10" rx="5"/>
+    <rect x="158" y="152" width="30" height="10" rx="5"/>
+  </g>
+</svg>

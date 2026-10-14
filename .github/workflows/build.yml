@@ -1,0 +1,53 @@
+name: Windows x64 build
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release-build:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Audit public source and history
+        shell: pwsh
+        run: |
+          python scripts/audit-public.py --tracked --output build/public-audit.json
+          if ($LASTEXITCODE -ne 0) { throw 'Public source audit failed.' }
+      - name: Configure MSVC x64
+        run: cmake -S . -B build/ci -G "Visual Studio 17 2022" -A x64
+      - name: Build Release with warnings as errors
+        run: cmake --build build/ci --config Release --parallel 2
+      - name: Run all local CTest fixtures
+        shell: pwsh
+        run: |
+          ctest --test-dir build/ci -C Release --output-on-failure --output-junit "$PWD/build/ci/ctest.xml"
+          $testExit = $LASTEXITCODE
+          if (Test-Path build/ci/ctest.xml) {
+            [xml]$junit = Get-Content build/ci/ctest.xml -Raw
+            foreach ($test in $junit.testsuite.testcase) {
+              if ($null -ne $test.skipped) { Write-Warning "SKIP is not PASS: $($test.name)" }
+            }
+          }
+          if ($testExit -ne 0) { throw "CTest failed ($testExit)." }
+      - name: Upload diagnostic CI artifact
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: windows-x64-test-evidence
+          path: |
+            build/ci/ctest.xml
+            build/ci/Testing/Temporary/LastTest.log
+            build/public-audit.json
+          if-no-files-found: error
+          retention-days: 14
+# All registered fixtures run. Clipboard isolation may return 77 (environment SKIP).
+# Native HWND tests are automation only, not interactive OCR, IME, DPI or Win11 acceptance.
+# No real credentials, Snipaste license, paid provider, push, release or secret setup.
+# Source-only publication: upload test evidence, never a binary artifact.

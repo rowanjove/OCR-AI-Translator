@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "snipaste_exe_path": "C:\\Tools\\Snipaste\\Snipaste.exe",
+  "ui": {
+    "target_language": "zh-Hans",
+    "theme": "system",
+    "width_dip": 850,
+    "height_dip": 380,
+    "version_limit": 10,
+    "remember_prompts": false,
+    "confirm_ocr_candidates": true
+  },
+  "translation": {
+    "auto_start": false
+  },
+  "profiles": [
+    {
+      "id": "example",
+      "name": "Example provider (no credentials)",
+      "base_url": "https://api.example.invalid/v1",
+      "model": "example-model",
+      "timeout_seconds": 60,
+      "max_output_tokens": 2048,
+      "thinking_mode": "automatic",
+      "credential_ref": "",
+      "enabled": true
+    }
+  ],
+  "roles": {
+    "translation_profile_id": "example",
+    "rewrite_profile_id": "example"
+  }
+}
