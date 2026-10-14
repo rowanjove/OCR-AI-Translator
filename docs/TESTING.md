@@ -1,5 +1,18 @@
 # Testing v0.9.0-preview
 
+## First hosted Windows CI (2026-10-14)
+
+[Run 38578032811](https://github.com/rowanjove/Snipaste-AI-Translator/actions/runs/38578032811)
+for source commit `5c86b249de3ffe60b98401bde2b323f53edcf62a`: audit/configure/Release
+build PASS; full CTest **9 PASS / 1 FAIL / 0 SKIP**, 34.23 seconds, exit 8.
+`native_clipboard_isolated` passed on the runner. `ui_stability_faults` failed
+earlier with `settings warmup did not close`; it did not reach the resource
+sampling gate. This is not proof of the same cause as the local resource failure.
+The runner-specific root cause is UNVERIFIED. All assertions remain intact.
+The workflow correctly concluded failure. Its artifact contains audit/JUnit/test
+logs only, never an EXE. This hosted run does not establish human or Windows 11
+acceptance. The following local results remain their original evidence snapshot.
+
 Local result on 2026-10-14, Windows 10 x64 build 19045: **8 PASS / 1 FAIL /
 1 SKIP**, 96.09 seconds. Release build passed with MSVC 19.44.35226 and
 Windows SDK 10.0.26100.0, `/W4 /WX`. Test exit code: 8; it is not a green suite.
@@ -44,8 +57,8 @@ requests, licensed Snipaste, or external model download are required.
 Core/network tests use local HTTP fixtures with real WinHTTP; DPAPI tests use
 fictional credentials and real local encryption. GUI/process/capture tests use
 real HWNDs plus injected events or a fake Snipaste launcher. They do not perform
-real OCR or human input. The same complete suite runs in Windows x64 CI; hosted
-Runner behavior remains UNVERIFIED until an authorized remote run. Clipboard
+real OCR or human input. The same complete suite runs in Windows x64 CI; the first hosted
+Runner result is recorded above; broader runner reliability remains UNVERIFIED. Clipboard
 isolation may SKIP depending on access. If HWND tests fail on the runner, retain
 that failure and diagnose it rather than suppressing it.
 

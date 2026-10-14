@@ -138,7 +138,8 @@ fixtures and all registered CTest tests. It does not call paid cloud models or
 require Snipaste licensing. A skipped isolated clipboard test is not a pass;
 GUI fixture tests do not represent human/OCR acceptance. The first hosted
 GitHub run is checked separately from local results. CI artifacts contain only
-test evidence, not executable downloads. Details: [testing](docs/TESTING.md).
+test evidence, not executable downloads. First hosted run: [9 PASS / 1 FAIL / 0 SKIP](https://github.com/rowanjove/Snipaste-AI-Translator/actions/runs/38578032811) (settings warmup
+assertion failed). Details: [testing](docs/TESTING.md).
 
 ## Privacy, limitations and roadmap
 

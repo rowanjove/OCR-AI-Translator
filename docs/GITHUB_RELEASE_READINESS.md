@@ -5,6 +5,32 @@
 支持可扩展 OCR 来源及自定义 AI API。Snipaste 是当前唯一实现的适配器，粘贴翻译独立可用。
 本项目为独立工具；其他 OCR 来源属于计划。
 
+## 已公开源码与首次托管 CI 结果（2026-10-14）
+
+公开仓库：[rowanjove/Snipaste-AI-Translator](https://github.com/rowanjove/Snipaste-AI-Translator)。
+初始源码 commit：`5c86b249de3ffe60b98401bde2b323f53edcf62a`，main 分支已推送。
+远程 API 验证 public、默认 main、Apache-2.0；完整远程树与 67 文件清单逐项一致。
+Release 数 0、tag 数 0；没有上传 EXE／候选 ZIP／DPAPI 文件／私人历史日志。
+
+[首次 Windows 托管 CI](https://github.com/rowanjove/Snipaste-AI-Translator/actions/runs/38578032811)：
+源码与可达历史审查 PASS、CMake configure PASS、`/W4 /WX` Release 全目标构建 PASS；
+CTest **9 PASS / 1 FAIL / 0 SKIP，34.23 秒，CTest 退出码 8**，工作流结论 **failure**。
+`native_clipboard_isolated` 在 Runner 上 PASS，不将该结果外推成本机 SKIP 已解决或真人验收。
+`ui_stability_faults` 在 `settings warmup did not close` 断言提前 FAIL；未进入资源采样门。
+其根因仍未定位，不能宣称与本机 GDI 56→57 是同一故障，也不能以早期 FAIL 证明资源门通过。
+其他 9 项通过；无收费云调用或真实 Snipaste 授权要求。
+
+已下载并核对本次 `windows-x64-test-evidence` Artifact，只有 public-audit.json、ctest.xml、
+LastTest.log 三个文件，无 EXE／ZIP 有效载荷。原始 Runner 结果本地保留于
+`out/github-readiness/first-hosted-ci`，不把本机私人证据上传。
+官方 pinned actions 有 Node20 弃用／Runner 使用 Node24 的警告，动作实际成功；
+该警告与 CTest 失败分开记录，后续可单独更新 pin 并复核。
+
+本次追加只更新公开文档，未改变源码／测试／工作流或移除失败断言。
+文档提交使用 `[skip ci]` 避免重复执行同一源码的完整套件；首个失败 run 保留，
+不标记为绿色，未把跳过文档重复运行当成 PASS。后续源码变更仍会正常触发 CI。
+源码已经按用户明确批准公开；Pre-release／Stable 继续 NO-GO，未发布二进制。
+
 ## 源码公开授权更新（2026-10-14）
 
 用户明确批准“先公开源码，暂不发布二进制”。目标仓库：

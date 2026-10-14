@@ -112,7 +112,8 @@ ctest --test-dir build/local -C Release --output-on-failure
 
 [Windows x64 CI](.github/workflows/build.yml) 构建并运行全部 CTest，使用虚构密钥及本机夹具，
 不调用收费模型、不要求 Snipaste 授权。剪贴板隔离 SKIP 不计 PASS；GUI 夹具不等于真人／OCR 验收。
-首次 GitHub 托管 Runner 结果单独记录；CI Artifact 只包含测试证据，不提供 EXE。具体方法见 [测试说明](docs/TESTING.md)。
+首次 GitHub 托管 Runner 结果单独记录；CI Artifact 只包含测试证据，不提供 EXE。首次托管运行为 [9 PASS / 1 FAIL / 0 SKIP](https://github.com/rowanjove/Snipaste-AI-Translator/actions/runs/38578032811)，设置预热断言失败。
+具体方法见 [测试说明](docs/TESTING.md)。
 
 ## 隐私、已知问题和计划
 
