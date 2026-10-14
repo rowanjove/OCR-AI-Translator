@@ -128,7 +128,11 @@ void testFinalStability(){
     }
     const DWORD gdiSettings=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userSettings=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
     DWORD handlesAfterSettings=0;GetProcessHandleCount(GetCurrentProcess(),&handlesAfterSettings);
-    require(gdiSettings<=gdiBeforeSettings&&userSettings<=userBeforeSettings&&handlesAfterSettings<=handlesBeforeSettings,"repeated settings operations leaked GDI/USER/kernel handles");
+    if(gdiSettings>gdiBeforeSettings||userSettings>userBeforeSettings||handlesAfterSettings>handlesBeforeSettings){
+        const std::string counts="settings_resource_counts handles="+std::to_string(handlesBeforeSettings)+"->"+std::to_string(handlesAfterSettings)+" gdi="+std::to_string(gdiBeforeSettings)+"->"+std::to_string(gdiSettings)+" user="+std::to_string(userBeforeSettings)+"->"+std::to_string(userSettings);
+        const std::string diagnostic=counts+" samples="+json::stringify(json::Value(std::move(settingsSamples)));
+        require(false,diagnostic.c_str());
+    }
     // Re-prime rendering after the settings stress loop, which commits theme changes.
     // Cover the same full operation sequence as the measured block before taking its baseline.
     DWORD lastObservedHandles=0;GetProcessHandleCount(GetCurrentProcess(),&lastObservedHandles);json::Value::Array handleTransitions;
