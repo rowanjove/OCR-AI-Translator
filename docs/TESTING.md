@@ -1,6 +1,28 @@
-# Testing v0.9.0-preview
+# Testing v0.9.1-preview
 
-## Current branded preview build (2026-10-14)
+## v0.9.1 stability-fix candidate (2026-10-15)
+
+Windows 10 x64 build 19045, Visual Studio 2022/MSVC 17.14.40, Release
+configuration: configure/build PASS; full CTest **9 PASS / 0 FAIL / 1 SKIP**
+(108.16 seconds). The skipped
+`native_clipboard_isolated` fixture could not create a private window station
+(Win32 error 5); no test touched the user's clipboard. The JUnit report is
+`build/v091/ctest-release.xml` in the local validation workspace.
+
+`ui_stability_faults` passed in the full suite and in three consecutive repeat
+runs (111.25 seconds total). The settings-pressure phase had no resource growth. After render
+warmup, the measured 100-cycle phase had process handles 301→301, GDI 57→57,
+USER 65→65, and zero theme-brush deletion failures. One process handle was added
+during warmup; its object type is unknown, so its source is not claimed.
+
+Windows 11, clean-machine, real Snipaste OCR/clipboard, live cloud Provider and
+physical IME/DPI remain separate UNVERIFIED matrix items. The v0.9.1 candidate
+is GO for review; this does not certify a Stable release. Hosted CI status is
+recorded after the push.
+
+## Previous v0.9.0-preview evidence (2026-10-14)
+
+### Original branded preview build
 
 OCR AI Translator: Release x64 build PASS, full local CTest **8 PASS / 1 FAIL /
 1 SKIP**, 98.87 seconds. GUI resource zero-growth assertion FAIL; clipboard

@@ -1,6 +1,6 @@
 # API compatibility
 
-Version: 0.9.0-preview. Claims describe current source, not a certification of
+Version: 0.9.1-preview. Claims describe current source, not a certification of
 any cloud provider.
 
 - OpenAI Chat Completions-compatible JSON `messages`, `model`, `max_tokens`,

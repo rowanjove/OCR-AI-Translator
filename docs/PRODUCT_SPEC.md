@@ -1,4 +1,4 @@
-# Product scope for 0.9.0-preview
+# Product scope for 0.9.1-preview
 
 OCR AI Translator is an extremely lightweight native Windows translation
 and text-processing tool with extensible OCR inputs and custom AI APIs. The

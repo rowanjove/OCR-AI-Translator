@@ -34,7 +34,7 @@ json::Value snapshotStabilityBrushes(){
 }
 void testFinalStability(){
     auto require=[](bool ok,const char* message){if(!ok)throw std::runtime_error(message);};
-    const bool oldAuto=g->config.autoStart;g->config.autoStart=false;
+    const bool oldAuto=g->config.autoStart;const auto oldSnipastePath=g->config.snipasteExePath;g->config.autoStart=false;g->config.snipasteExePath=(g->config.folder/L"unavailable-Snipaste.exe").wstring();
     auto emit=[&](TranslationEvent::Kind kind,const std::wstring& text=L""){
         postTranslationEvent(g->uiQueue,{kind,g->activeRequestId,g->revision,false,text,g->inputSession.id});
         processNetworkEvents();
@@ -95,9 +95,14 @@ void testFinalStability(){
     openSettings();openHelp();DestroyWindow(g->settings);setTheme();
     for(int i=0;i<10;++i){openSettings();uiMessage(g->settings,settingTheme,CB_SETCURSEL,i%2?1:2,0);SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(settingTheme,CBN_SELCHANGE),0);SendMessageW(g->settings,WM_COMMAND,MAKEWPARAM(i%2?settingSave:settingCancel,BN_CLICKED),0);require(!g->settings,"settings warmup did not close");if(i%2){auto loaded=loadConfig();require(!loaded.damagedConfig,"settings warmup reload failed");clearConfigSecrets(loaded);}pumpPostedUiMessages();}
     DWORD handlesBeforeRenderWarmup=0;GetProcessHandleCount(GetCurrentProcess(),&handlesBeforeRenderWarmup);
-    // Cover every theme/size/visibility combination before comparing steady state.
-    // Keep the first-use count as evidence, and retain the zero-growth assertion.
-    for(int i=0;i<20;++i){g->config.theme=i%2?Theme::dark:Theme::light;setTheme();SetWindowPos(g->window,nullptr,0,0,700+i%5*35,410+i%4*20,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);ShowWindow(g->window,i%2?SW_HIDE:SW_SHOWNOACTIVATE);UpdateWindow(g->window);pumpPostedUiMessages();}
+    auto resourceSnapshot=[](int cycle,const char* phase){
+        DWORD handles=0;GetProcessHandleCount(GetCurrentProcess(),&handles);json::Value::Object sample;
+        sample["cycle"]=static_cast<double>(cycle);sample["phase"]=phase;
+        sample["gdi"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS));
+        sample["user"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS));
+        sample["handles"]=static_cast<double>(handles);return json::Value(std::move(sample));
+    };
+    json::Value::Array renderWarmupSamples,renderSamples;
     auto quiesce=[&]{
         SetFocus(nullptr);if(g->tooltip)SendMessageW(g->tooltip,TTM_POP,0,0);g->config.theme=originalTheme;
         // Hidden native controls may retain cached brushes until they repaint.
@@ -107,9 +112,9 @@ void testFinalStability(){
         ShowWindow(g->window,SW_HIDE);pumpPostedUiMessages();
     };
     quiesce();
-    const DWORD gdiBefore=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userBefore=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
+    const DWORD gdiBeforeSettings=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userBeforeSettings=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
     auto brushesBefore=snapshotStabilityBrushes();
-    DWORD handlesBefore=0;GetProcessHandleCount(GetCurrentProcess(),&handlesBefore);
+    DWORD handlesBeforeSettings=0;GetProcessHandleCount(GetCurrentProcess(),&handlesBeforeSettings);
     json::Value::Array settingsSamples;
     for(int i=0;i<50;++i){
         openSettings();require(g->settings&&IsWindow(g->settings),"settings creation failed in stress loop");
@@ -122,22 +127,36 @@ void testFinalStability(){
         if(i==0||i==1||i==9||i==24||i==49){DWORD handles=0;GetProcessHandleCount(GetCurrentProcess(),&handles);json::Value::Object sample;sample["cycle"]=static_cast<double>(i+1);sample["gdi"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS));sample["user"]=static_cast<double>(GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS));sample["handles"]=static_cast<double>(handles);settingsSamples.emplace_back(std::move(sample));}
     }
     const DWORD gdiSettings=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userSettings=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
-    for(int i=0;i<100;++i){g->config.theme=i%2?Theme::dark:Theme::light;setTheme();SetWindowPos(g->window,nullptr,0,0,700+i%5*35,410+i%4*20,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);ShowWindow(g->window,i%2?SW_HIDE:SW_SHOWNOACTIVATE);UpdateWindow(g->window);pumpPostedUiMessages();}
+    DWORD handlesAfterSettings=0;GetProcessHandleCount(GetCurrentProcess(),&handlesAfterSettings);
+    require(gdiSettings<=gdiBeforeSettings&&userSettings<=userBeforeSettings&&handlesAfterSettings<=handlesBeforeSettings,"repeated settings operations leaked GDI/USER/kernel handles");
+    // Re-prime rendering after the settings stress loop, which commits theme changes.
+    // Cover the same full operation sequence as the measured block before taking its baseline.
+    DWORD lastObservedHandles=0;GetProcessHandleCount(GetCurrentProcess(),&lastObservedHandles);json::Value::Array handleTransitions;
+    auto recordHandleTransition=[&](int cycle,const char* phase){DWORD current=0;GetProcessHandleCount(GetCurrentProcess(),&current);if(current!=lastObservedHandles){json::Value::Object sample;sample["cycle"]=static_cast<double>(cycle);sample["phase"]=phase;sample["from"]=static_cast<double>(lastObservedHandles);sample["to"]=static_cast<double>(current);handleTransitions.emplace_back(std::move(sample));lastObservedHandles=current;}};
+    for(int i=0;i<100;++i){g->config.theme=i%2?Theme::dark:Theme::light;setTheme();recordHandleTransition(i+1,"warmup_after_theme");SetWindowPos(g->window,nullptr,0,0,700+i%5*35,410+i%4*20,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);recordHandleTransition(i+1,"warmup_after_resize");ShowWindow(g->window,i%2?SW_HIDE:SW_SHOWNOACTIVATE);UpdateWindow(g->window);pumpPostedUiMessages();renderWarmupSamples.emplace_back(resourceSnapshot(i+1,"warmup"));}
+    quiesce();
+    const DWORD gdiBefore=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userBefore=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
+    DWORD handlesBefore=0;GetProcessHandleCount(GetCurrentProcess(),&handlesBefore);lastObservedHandles=handlesBefore;
+    brushesBefore=snapshotStabilityBrushes();
+    // Keep recording phase transitions during the measured window without changing the gate.
+    auto recordMeasuredHandleTransition=[&](int cycle,const char* phase){DWORD current=0;GetProcessHandleCount(GetCurrentProcess(),&current);if(current!=lastObservedHandles){json::Value::Object sample;sample["cycle"]=static_cast<double>(cycle);sample["phase"]=phase;sample["from"]=static_cast<double>(lastObservedHandles);sample["to"]=static_cast<double>(current);handleTransitions.emplace_back(std::move(sample));lastObservedHandles=current;}};
+    for(int i=0;i<100;++i){g->config.theme=i%2?Theme::dark:Theme::light;setTheme();recordMeasuredHandleTransition(i+1,"after_theme");SetWindowPos(g->window,nullptr,0,0,700+i%5*35,410+i%4*20,SWP_NOMOVE|SWP_NOZORDER|SWP_NOACTIVATE);recordMeasuredHandleTransition(i+1,"after_resize");ShowWindow(g->window,i%2?SW_HIDE:SW_SHOWNOACTIVATE);recordMeasuredHandleTransition(i+1,"after_visibility");UpdateWindow(g->window);recordMeasuredHandleTransition(i+1,"after_update");pumpPostedUiMessages();recordMeasuredHandleTransition(i+1,"after_messages");renderSamples.emplace_back(resourceSnapshot(i+1,"measured"));}
     quiesce();
     const DWORD gdiAfter=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS),userAfter=GetGuiResources(GetCurrentProcess(),GR_USEROBJECTS);
     auto brushesAfter=snapshotStabilityBrushes();
     DWORD handlesAfter=0;GetProcessHandleCount(GetCurrentProcess(),&handlesAfter);
     json::Value::Object metrics;metrics["ocr_sessions"]=100.0;metrics["request_event_sequences"]=100.0;metrics["settings_cycles"]=50.0;metrics["theme_resize_cycles"]=100.0;
     metrics["gdi_before"]=static_cast<double>(gdiBefore);metrics["gdi_after"]=static_cast<double>(gdiAfter);metrics["user_before"]=static_cast<double>(userBefore);metrics["user_after"]=static_cast<double>(userAfter);metrics["handles_before"]=static_cast<double>(handlesBefore);metrics["handles_after"]=static_cast<double>(handlesAfter);
-    metrics["gdi_after_settings"]=static_cast<double>(gdiSettings);metrics["user_after_settings"]=static_cast<double>(userSettings);
-    metrics["settings_samples"]=std::move(settingsSamples);
+    metrics["gdi_before_settings"]=static_cast<double>(gdiBeforeSettings);metrics["gdi_after_settings"]=static_cast<double>(gdiSettings);metrics["user_before_settings"]=static_cast<double>(userBeforeSettings);metrics["user_after_settings"]=static_cast<double>(userSettings);metrics["handles_before_settings"]=static_cast<double>(handlesBeforeSettings);metrics["handles_after_settings"]=static_cast<double>(handlesAfterSettings);
+    metrics["settings_samples"]=std::move(settingsSamples);metrics["handle_transitions"]=std::move(handleTransitions);
+    metrics["render_warmup_samples"]=std::move(renderWarmupSamples);metrics["render_samples"]=std::move(renderSamples);
     metrics["brushes_before"]=std::move(brushesBefore);metrics["brushes_after"]=std::move(brushesAfter);
     metrics["theme_brush_delete_failures"]=static_cast<double>(g->failedThemeBrushDeletes);
     metrics["settings_warmup_cycles"]=10.0;
-    metrics["render_warmup_cycles"]=20.0;metrics["handles_before_render_warmup"]=static_cast<double>(handlesBeforeRenderWarmup);
+    metrics["render_warmup_cycles"]=100.0;metrics["handles_before_render_warmup"]=static_cast<double>(handlesBeforeRenderWarmup);
     std::ofstream report(g->config.folder/L"gui-stability.json",std::ios::binary);report<<json::stringify(json::Value(std::move(metrics)));require(static_cast<bool>(report),"GUI stress evidence could not be written");
     require(g->failedThemeBrushDeletes==0,"theme replacement failed to release an owned brush");
     require(gdiAfter<=gdiBefore&&userAfter<=userBefore&&handlesAfter<=handlesBefore,"repeated GUI operations leaked GDI/USER/kernel handles");
-    g->config.autoStart=oldAuto;
+    g->config.autoStart=oldAuto;g->config.snipasteExePath=oldSnipastePath;
 }
 #endif

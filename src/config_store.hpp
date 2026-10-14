@@ -40,10 +40,10 @@ struct Config {
     bool rememberPosition = false, alwaysOnTop = false, showSourceCopy = true;
     bool showUnlock = true, showRestore = true, showResultCopy = true, showRetranslate = true;
     bool showRewrite = true, showDeAi = true, showCustomPrompt = true, showVersionHistory = true;
-    bool autoStart = true;
+    bool autoStart = false;
     unsigned versionLimit = 10;
     bool rememberPrompts = true;
-    bool confirmOcrCandidates = false;
+    bool confirmOcrCandidates = true;
     std::vector<int> toolbarOrder{117,103,105,106,107,108,111,104,118,119,120,121};
 
     std::vector<ProviderProfile> profiles;

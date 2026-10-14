@@ -1,6 +1,6 @@
 # OCR AI Translator
 
-[简体中文](README.md) · **v0.9.0-preview** · [Download](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.0-preview) · Apache-2.0
+[简体中文](README.md) · **v0.9.1-preview** · [Download](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1-preview) · Apache-2.0
 
 A lightweight native Windows translation and text-processing tool with custom
 AI APIs and extensible OCR inputs. Paste text directly, or use the currently
@@ -32,11 +32,12 @@ The app exits with its last window. Your OCR or local model service can run inde
 
 ## Download and use
 
-Download **OCR-AI-Translator-v0.9.0-preview-Win10-x64.zip** from
+Download **OCR-AI-Translator-v0.9.1-preview-Win10-x64.zip** from
 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases), verify the adjacent checksum file, extract to a
 writable directory and run `Translator.exe`. Administrator rights are normally
-unnecessary. This is an **unsigned preview** with known automated test failures,
-disclosed in the Release Notes and testing documentation.
+unnecessary. This is an **unsigned stability-fix preview candidate**; one
+clipboard-isolation test is skipped due to local permissions, as disclosed in
+the Release Notes and testing documentation.
 
 Locally verified environment: Windows 10 x64 build 19045. Windows 11, physical
 mixed DPI/multiple monitors, clean-machine and full human IME acceptance remain

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(OCRAITranslator VERSION 0.9.0 LANGUAGES CXX RC)
+project(OCRAITranslator VERSION 0.9.1 LANGUAGES CXX RC)
 set(SAT_VERSION "${PROJECT_VERSION}-preview")
 configure_file(src/app_version.h.in generated/app_version.h @ONLY)
 if(NOT WIN32 OR NOT MSVC)

@@ -1,6 +1,6 @@
 # OCR AI Translator
 
-[English](README.en.md) · **v0.9.0-preview** · [下载](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.0-preview) · Apache-2.0
+[English](README.en.md) · **v0.9.1-preview** · [下载](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1-preview) · Apache-2.0
 
 一款极轻量的原生 Windows 翻译与文本处理工具，支持自定义 AI API，围绕可扩展的 OCR 来源设计。
 直接粘贴文本即可使用；目前已实现 Snipaste OCR 适配器，后续计划接入其他 OCR 工具，并探索内置 OCR。
@@ -27,9 +27,9 @@
 
 ## 下载与使用
 
-在 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases) 下载 **OCR-AI-Translator-v0.9.0-preview-Win10-x64.zip**，
+在 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases) 下载 **OCR-AI-Translator-v0.9.1-preview-Win10-x64.zip**，
 用同页 SHA256SUMS 校验后解压到可写目录，运行 `Translator.exe`。通常无需管理员权限。
-当前为 **预发布版**，EXE 未签名；自动化测试仍有已知失败，详情见 Release Notes 和测试文档。
+当前为 **稳定性修复候选预发布版**，EXE 未签名；完整测试有一个因本机权限跳过的剪贴板隔离用例，详情见 Release Notes 和测试文档。
 
 当前本机验证环境：Windows 10 x64 build 19045。Windows 11 x64、物理混合 DPI／多屏、干净机和
 真人输入法完整验收尚未完成。未提供 x86、ARM64、Linux 或 macOS 版本。

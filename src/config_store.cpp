@@ -314,7 +314,7 @@ Config loadConfig(bool createFolder){
         Config parsed=c;struct WipeParsed{Config&c;~WipeParsed(){clearConfigSecrets(c);}}wipeParsed{parsed};auto raw=readUtf8File(path);struct RawWipe{std::string& text;~RawWipe(){if(!text.empty())SecureZeroMemory(text.data(),text.size());}}rawWipe{raw};auto root=json::Parser(raw).parse();struct RootWipe{json::Value& value;~RootWipe(){wipeJsonStrings(value);}}rootWipe{root};const auto*o=root.object();if(!o)throw std::runtime_error("config root is not an object");
         stripSensitive(root);parsed.unknownRoot=*root.object();parsed.schemaVersion=static_cast<uint32_t>(intField(root,"schema_version",1,1,1));
         parsed.snipasteExePath=field(root,"snipaste_exe_path",parsed.snipasteExePath,32700);
-        if(const auto*translation=root.get("translation")){if(!translation->object())throw std::runtime_error("translation config must be an object");parsed.autoStart=boolField(*translation,"auto_start",true);}
+        if(const auto*translation=root.get("translation")){if(!translation->object())throw std::runtime_error("translation config must be an object");parsed.autoStart=boolField(*translation,"auto_start",false);}
         if(const auto*ui=root.get("ui")){if(!ui->object())throw std::runtime_error("ui config must be an object");
             parsed.targetLanguage=field(*ui,"target_language",L"zh-Hans",64);if(parsed.targetLanguage!=L"zh-Hans"&&parsed.targetLanguage!=L"zh-Hant"&&parsed.targetLanguage!=L"en"&&parsed.targetLanguage!=L"ja"&&parsed.targetLanguage!=L"ko"&&parsed.targetLanguage!=L"fr"&&parsed.targetLanguage!=L"de"&&parsed.targetLanguage!=L"es")throw std::runtime_error("unsupported target language");
             const auto theme=field(*ui,"theme",L"system",16);if(theme==L"dark")parsed.theme=Theme::dark;else if(theme==L"light")parsed.theme=Theme::light;else if(theme!=L"system")throw std::runtime_error("invalid theme");
@@ -322,7 +322,7 @@ Config loadConfig(bool createFolder){
             parsed.rememberPosition=boolField(*ui,"remember_position",false);parsed.alwaysOnTop=boolField(*ui,"always_on_top",false);parsed.showSourceCopy=boolField(*ui,"show_source_copy",true);parsed.showUnlock=boolField(*ui,"show_unlock",true);parsed.showRestore=boolField(*ui,"show_restore",true);parsed.showResultCopy=boolField(*ui,"show_result_copy",true);parsed.showRetranslate=boolField(*ui,"show_retranslate",true);
             parsed.showRewrite=boolField(*ui,"show_rewrite",true);parsed.showDeAi=boolField(*ui,"show_de_ai",true);parsed.showCustomPrompt=boolField(*ui,"show_custom_prompt",true);parsed.showVersionHistory=boolField(*ui,"show_version_history",true);
             parsed.versionLimit=static_cast<unsigned>(intField(*ui,"version_limit",10,static_cast<int>(minVersionLimit),static_cast<int>(maxVersionLimit)));
-            parsed.rememberPrompts=boolField(*ui,"remember_prompts",true);parsed.confirmOcrCandidates=boolField(*ui,"confirm_ocr_candidates",false);
+            parsed.rememberPrompts=boolField(*ui,"remember_prompts",true);parsed.confirmOcrCandidates=boolField(*ui,"confirm_ocr_candidates",true);
             parsed.toolbarOrder=toolbarOrderField(*ui,"toolbar_order",parsed.toolbarOrder);
         }
         if(const auto*profArrVal=root.get("profiles")){
