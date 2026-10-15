@@ -95,11 +95,11 @@ inline void testVisualHardening(){
         const auto name=std::wstring(L"icons-")+(theme==Theme::dark?L"dark-":L"light-")+std::to_wstring(dpi)+L".bmp";
         std::ofstream out(g->config.folder/name,std::ios::binary);out.write(reinterpret_cast<const char*>(&file),sizeof(file));out.write(reinterpret_cast<const char*>(&info.bmiHeader),sizeof(BITMAPINFOHEADER));out.write(static_cast<const char*>(pixels),static_cast<std::streamsize>(width)*height*4);require(out.good(),"visual atlas write failed");++images;
         if(dpi==96&&theme==Theme::light){
-            DRAWITEMSTRUCT item{ODT_BUTTON,109,0,ODA_DRAWENTIRE,0,uiItem(g->window,109),dc,{6,6,42,42},0};drawActionButton(item,dpi);GdiFlush();std::vector<DWORD> normal(static_cast<size_t>(cell)*cell);auto* data=static_cast<DWORD*>(pixels);for(int y=0;y<cell;++y)std::copy_n(data+y*width,cell,normal.data()+y*cell);
+            DRAWITEMSTRUCT item{ODT_BUTTON,109,0,ODA_DRAWENTIRE,0,uiItem(g->window,109),dc,{6,6,42,42},0};SendMessageW(item.hwndItem,WM_MOUSEMOVE,0,0);drawActionButton(item,dpi);SendMessageW(item.hwndItem,WM_MOUSELEAVE,0,0);item.itemState=ODS_SELECTED;drawActionButton(item,dpi);item.itemState=ODS_FOCUS;drawActionButton(item,dpi);item.itemState=0;drawActionButton(item,dpi);GdiFlush();std::vector<DWORD> normal(static_cast<size_t>(cell)*cell);auto* data=static_cast<DWORD*>(pixels);for(int y=0;y<cell;++y)std::copy_n(data+y*width,cell,normal.data()+y*cell);
             gdiBefore=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS);const auto start=InputClock::now();
             for(int i=0;i<1000;++i){SendMessageW(item.hwndItem,WM_MOUSEMOVE,0,0);drawActionButton(item,dpi);SendMessageW(item.hwndItem,WM_MOUSELEAVE,0,0);item.itemState=ODS_SELECTED;drawActionButton(item,dpi);item.itemState=ODS_FOCUS;drawActionButton(item,dpi);item.itemState=0;drawActionButton(item,dpi);}
             paintMs=std::chrono::duration<double,std::milli>(InputClock::now()-start).count();GdiFlush();gdiAfter=GetGuiResources(GetCurrentProcess(),GR_GDIOBJECTS);
-            for(int y=0;y<cell;++y)require(std::equal(normal.data()+y*cell,normal.data()+(y+1)*cell,data+y*width),"hover/pressed/focus repaint left stale pixels");require(gdiAfter==gdiBefore,"repeated Direct2D button paint leaked GDI objects");
+            for(int y=0;y<cell;++y)require(std::equal(normal.data()+y*cell,normal.data()+(y+1)*cell,data+y*width),"hover/pressed/focus repaint left stale pixels");require(gdiAfter==gdiBefore,("repeated Direct2D button paint leaked GDI objects: before="+std::to_string(gdiBefore)+" after="+std::to_string(gdiAfter)).c_str());
         }
         SelectObject(dc,old);DeleteObject(bitmap);DeleteDC(dc);
     }

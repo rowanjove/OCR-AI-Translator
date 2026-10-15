@@ -86,11 +86,12 @@ def main():
         inventory.append({"path": name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()})
         if path.suffix.lower() not in ALLOWED_BINARY:
             failures.extend(scan_text(name, data))
-    # This project began without Git. For future use also check all reachable
-    # historical blobs; names/values remain private, only locations are reported.
+    # Audit every publishable head/tag/remote plus HEAD. Codex keeps private
+    # worktree snapshots under refs/codex; those are not pushed or published.
+    # Keep these snapshots intact, but do not treat them as public history.
     history_blobs = 0
     if subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--verify", "HEAD"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
-        for line in git("rev-list", "--objects", "--all").decode("utf-8").splitlines():
+        for line in git("rev-list", "--objects", "HEAD", "--branches", "--tags", "--remotes").decode("utf-8").splitlines():
             oid, _, name = line.partition(" ")
             if git("cat-file", "-t", oid).strip() != b"blob":
                 continue
@@ -104,7 +105,7 @@ def main():
     report = {"mode": "index" if args.staged else "tracked" if args.tracked else "candidate",
               "files": inventory, "file_count": len(inventory), "history_blobs_scanned": history_blobs,
               "findings": failures, "result": "FAIL" if failures else "PASS",
-              "limits": "Heuristic text scan; images require visual review; binary source assets are not decoded for hidden data. No external user config is read."}
+              "limits": "Heuristic text scan of candidate files and HEAD/branches/tags/remotes history; private app checkpoint refs are not publication refs. Images require visual review; binary source assets are not decoded for hidden data. No external user config is read."}
     if args.output:
         output = Path(args.output)
         output.parent.mkdir(parents=True, exist_ok=True)

@@ -3,6 +3,17 @@
 Changes to OCR AI Translator. Historical entries describe their original
 stage; current implementation and validation are in release readiness.
 
+## [0.9.1] - 2026-10-15
+
+### Stable release
+- Windows 10 x64 is the supported and accepted platform. Real Snipaste OCR and live cloud Provider acceptance are PASS according to the developer; automated fixture results are recorded separately.
+- Retained the optional OCR and cautious-default fixes from the preview; expanded regression coverage for empty/missing OCR executable paths, save/reload, failed capture without network requests, and independent manual text translation.
+- Warmed first-use button states before visual resource sampling while retaining strict zero-growth assertions; bounded initialization changes are recorded separately from measured loops.
+- Unified CMake, PE, About, documentation and package version as `0.9.1`; removed the PE prerelease flag and corrected stale About acceptance text.
+- Stable packaging verifies successful push CI for the exact source commit and all 10 hosted CTest cases, including isolated clipboard. ZIP contents, production-only binary, dependencies and SHA256 are checked.
+- Exact final test results, commit, CI and public asset hashes are recorded in [the stable release report](docs/STABLE_RELEASE_REPORT_2026-10-15.md).
+- Unsigned portable executable. Windows 11 and the full physical IME/DPI/multi-monitor/clean-machine matrix remain unverified and outside this release's acceptance scope.
+
 ## [0.9.1-preview] - 2026-10-15
 
 ### Fixed
@@ -11,10 +22,10 @@ stage; current implementation and validation are in release readiness.
 - Fixed the settings warmup failure in the GUI stability test by using a deterministic missing OCR path and explicitly warming the first settings open/theme preview after final quiescence. Strict measured resource assertions remain unchanged.
 
 ### Validation
-- Windows 10 x64 Release build passed; full CTest: 9 PASS / 0 FAIL / 1 SKIP. The clipboard-isolation test skipped because this host could not create a private window station (Win32 error 5).
-- `ui_stability_faults` passed three consecutive runs and in the full suite. First-use settings warmup can add one GDI object; its source remains unidentified, while the following 50 settings cycles and 100 render cycles show no growth.
-- Windows 11, clean-machine, live Provider, real Snipaste OCR and physical IME/DPI coverage remain separately unverified.
-- This is a preview candidate, not a Stable release.
+- Windows 10 x64 Release configure/build passed; full local CTest passed 9 tests with 0 failures and 1 permission-related skip in 77.67 seconds. `ui_stability_faults` passed in three consecutive runs and in the full suite.
+- Latest full-suite post-quiescence settings/theme warmup changed GDI 56→64→65→57→57 and USER 65→190→190→65→65; the source of the single net GDI increase remains unidentified. Strict measured settings and render loops had no resource growth (GDI 57→55 then 57→57; USER 65→63 then 64→63; process handles 283→283).
+- GitHub Actions for commit `73884295116a3ff27608d9ab72de17b1bbc32851` passed the Windows x64 build and all 10 CTest cases. Local uncommitted changes are covered by the full local run, not that hosted run.
+- Windows 11, clean-machine, real Snipaste OCR/provider, physical IME/DPI and multi-monitor coverage remain unverified. This is a preview candidate, not a Stable release.
 
 ## [0.9.0-preview] - 2026-10-14
 

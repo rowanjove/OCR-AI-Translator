@@ -1269,7 +1269,7 @@ void updateThinkingModeHint(HWND w,std::wstring_view baseUrl,std::wstring_view m
     uiSetText(w,settingThinkingMode+2000,hint);
 }
 constexpr const wchar_t* helpText=
-    L"关于\r\nOCR AI Translator " SAT_VERSION_WIDE L"\r\n一款极轻量、可扩展 OCR 来源、支持自定义 AI 模型的 Windows 翻译与文本处理工具。采用 C++20 与 Win32，关闭后无本工具常驻进程。当前 Snipaste OCR 适配器仍待实机验收，本项目是独立工具。Apache-2.0 许可。\r\n\r\n"
+    L"关于\r\nOCR AI Translator " SAT_VERSION_WIDE L"\r\n一款极轻量、可扩展 OCR 来源、支持自定义 AI 模型的 Windows 翻译与文本处理工具。采用 C++20 与 Win32，关闭后无本工具常驻进程。支持 Windows 10 x64；Snipaste 专业版为可选 OCR 来源，本项目是独立工具。Apache-2.0 许可。\r\n\r\n"
     L"快速开始\r\n按 Ctrl+V 粘贴文字，选择目标语言后翻译。需要配置模型时，打开模型与 API，填写服务地址、模型 ID 和 API Key。\r\n\r\n"
     L"截图翻译\r\n当前 OCR 来源为 Snipaste。在“常规”页设置 OCR 来源可执行文件路径，再点“截图翻译”框选文字。开启候选确认时先核对文字；关闭时自动采用，并按“自动翻译”设置处理。原文到达后会显示窗口，也可点击目标语言后的“翻译”手动提交。按 Esc 取消等待。\r\n\r\n"
     L"模型与 API\r\n服务地址需兼容 OpenAI Chat Completions。可管理多个模型配置，并分别绑定翻译和改写用途。API Key 使用当前 Windows 用户的 DPAPI 加密保存。测试连接会发送少量请求并消耗 API 用量；保存可保留配置，取消会丢弃本次未保存的修改。\r\n\r\n"

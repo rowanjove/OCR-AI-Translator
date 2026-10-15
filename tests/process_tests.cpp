@@ -119,21 +119,27 @@ void optionalOcrPathSettingsTest(const std::wstring& exe,const std::filesystem::
     click(app.window,109);HWND settings=FindWindowW(L"SAT.Settings",nullptr);check(settings!=nullptr,"optional OCR settings did not open");
     check(textOf(testItem(settings,343))==LR"(C:\tools\Snipaste\Snipaste.exe)","new config UI lost its explicit Snipaste path default");
     check(testMessage(settings,324,BM_GETCHECK,0,0)==BST_UNCHECKED&&testMessage(settings,339,BM_GETCHECK,0,0)==BST_CHECKED,"new config UI did not use cautious translation/OCR defaults");
-    check(setRemoteText(settings,343,missingPath.wstring()),"missing optional OCR path edit failed");click(settings,363);
+    check(setRemoteText(settings,343,L""),"empty optional OCR path edit failed");click(settings,363);
     check(setRemoteText(settings,302,server.url())&&setRemoteText(settings,303,L"no-ocr-model")&&setRemoteText(settings,304,L"OPTIONAL_OCR_FIXTURE_KEY"),"provider fixture fields could not be entered without Snipaste");
-    click(settings,314);check(!IsWindow(settings),"saving a Provider with a missing optional OCR EXE did not close settings");
-    std::ifstream saved(configPath,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(saved)),{});check(saved.good()||saved.eof(),"optional OCR config could not be read after save");
-    check(bytes.find("uninstalled-Snipaste.exe")!=std::string::npos&&bytes.find(utf8(server.url()))!=std::string::npos&&bytes.find("no-ocr-model")!=std::string::npos&&bytes.find("OPTIONAL_OCR_FIXTURE_KEY")==std::string::npos,"missing OCR path or Provider settings were not safely persisted");
-    click(app.window,117);check(textOf(testItem(app.window,110)).find(L"EXE")!=std::wstring::npos&&!SendMessageW(app.window,testCaptureControl,5,0),"starting OCR with a missing EXE did not return a clear error and clean up");
-    check(server.requests().empty(),"failed OCR startup issued a Provider request");
+    click(settings,314);check(!IsWindow(settings),"saving a Provider with an empty optional OCR path did not close settings");
+    std::ifstream saved(configPath,std::ios::binary);std::string bytes((std::istreambuf_iterator<char>(saved)),{});check(saved.good()||saved.eof(),"optional OCR config could not be read after save");saved.close();
+    check(bytes.find("\"snipaste_exe_path\":\"\"")!=std::string::npos&&bytes.find(utf8(server.url()))!=std::string::npos&&bytes.find("no-ocr-model")!=std::string::npos&&bytes.find("OPTIONAL_OCR_FIXTURE_KEY")==std::string::npos,"empty OCR path or Provider settings were not safely persisted");
+    click(app.window,117);check(textOf(testItem(app.window,110)).find(L"EXE")!=std::wstring::npos&&!SendMessageW(app.window,testCaptureControl,5,0),"starting OCR with an empty path did not return a clear error and clean up");
+    check(server.requests().empty(),"failed OCR startup with an empty path issued a Provider request");
     click(app.window,129);check(server.waitForRequests(1),"manual text translation required a working OCR installation");
-    awaitState([&]{return textOf(testItem(app.window,101))==L"plain text works without OCR";},"manual text translation failed with a missing OCR executable");
+    awaitState([&]{return textOf(testItem(app.window,101))==L"plain text works without OCR";},"manual text translation failed with an empty OCR path");
     const auto request=server.requests().front();check(request.find("Optional OCR fixture source")!=std::string::npos&&request.find("no-ocr-model")!=std::string::npos,"manual translation used the wrong saved Provider");
     SendMessageW(app.window,WM_CLOSE,0,0);check(app.waitExit()&&app.exitCode()==0,"optional OCR config test process did not close cleanly");app.window=nullptr;
-    Child restarted=launch(exe,L"--mock-text \"Optional OCR fixture source\"");click(restarted.window,109);settings=FindWindowW(L"SAT.Settings",nullptr);check(settings&&textOf(testItem(settings,343))==missingPath.wstring(),"missing OCR path did not survive an application restart");
+    Child restarted=launch(exe,L"--mock-text \"Optional OCR fixture source\"");click(restarted.window,109);settings=FindWindowW(L"SAT.Settings",nullptr);check(settings&&textOf(testItem(settings,343)).empty(),"empty OCR path did not survive an application restart");
     click(settings,363);check(textOf(testItem(settings,302))==server.url()&&textOf(testItem(settings,303))==L"no-ocr-model","saved Provider did not reload after an application restart");
-    SendMessageW(settings,WM_CLOSE,0,0);SendMessageW(restarted.window,WM_CLOSE,0,0);check(restarted.waitExit()&&restarted.exitCode()==0,"restarted optional OCR test process did not close cleanly");restarted.window=nullptr;
-    std::cout<<"optional_ocr_config_save_reload_manual_translation: PASS (local HTTP fixture)\n";
+    click(settings,360);check(setRemoteText(settings,343,missingPath.wstring()),"missing optional OCR path edit failed after reload");click(settings,314);if(IsWindow(settings))throw std::runtime_error("saving a Provider with a missing optional OCR EXE did not close settings: "+utf8(textOf(testItem(settings,316))));
+    click(restarted.window,117);check(textOf(testItem(restarted.window,110)).find(L"EXE")!=std::wstring::npos&&!SendMessageW(restarted.window,testCaptureControl,5,0),"starting OCR with a missing EXE did not return a clear error and clean up");
+    check(server.requests().size()==1,"failed OCR startup with a missing EXE issued a Provider request");
+    SendMessageW(restarted.window,WM_CLOSE,0,0);check(restarted.waitExit()&&restarted.exitCode()==0,"restarted optional OCR test process did not close cleanly");restarted.window=nullptr;
+    Child finalRestart=launch(exe,L"--mock-text \"Optional OCR fixture source\"");click(finalRestart.window,109);settings=FindWindowW(L"SAT.Settings",nullptr);check(settings&&textOf(testItem(settings,343))==missingPath.wstring(),"missing OCR path did not survive an application restart");
+    click(settings,363);check(textOf(testItem(settings,302))==server.url()&&textOf(testItem(settings,303))==L"no-ocr-model","Provider did not survive missing-path save and restart");
+    SendMessageW(settings,WM_CLOSE,0,0);SendMessageW(finalRestart.window,WM_CLOSE,0,0);check(finalRestart.waitExit()&&finalRestart.exitCode()==0,"final optional OCR test process did not close cleanly");finalRestart.window=nullptr;
+    std::cout<<"optional_ocr_config_empty_and_missing_path_save_reload_manual_translation: PASS (local HTTP fixture)\n";
 }
 int captureWindowTests(const std::wstring& exe){
     const auto folder=requireTestDirectory(L"capture-test-config");std::filesystem::create_directories(folder);

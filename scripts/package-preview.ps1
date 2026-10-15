@@ -1,14 +1,35 @@
 param(
-    [string]$BuildDirectory = 'build/v091',
-    [string]$TestReport = 'build/v091/ctest-release.xml',
-    [string]$Version = '0.9.1-preview',
+    [string]$BuildDirectory = 'build/stable-v091',
+    [string]$TestReport = 'build/stable-v091/ctest-release.xml',
+    [string]$Version = '0.9.1',
     [string]$HostedCiStatus = 'UNVERIFIED',
-    [string]$HostedCiRunUrl = ''
+    [string]$HostedCiRunUrl = '',
+    [string]$LocalCtestSummary = ''
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
-if ($Version -notmatch '^\d+\.\d+\.\d+-preview$') { throw 'Only a semantic-version preview may be packaged.' }
+if ($Version -notmatch '^\d+\.\d+\.\d+(-preview)?$') { throw 'Expected a semantic version with an optional -preview suffix.' }
 $expectedVersion = $Version
+$isStable = $expectedVersion -notmatch '-preview$'
+if ($isStable -and ($HostedCiStatus -ne 'PASS' -or -not $HostedCiRunUrl)) { throw 'Stable packaging requires a passing hosted CI run URL.' }
+$sourceCommit = (& git -C $root rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Cannot identify the source commit.' }
+& git -C $root diff --quiet HEAD -- .
+if ($LASTEXITCODE -ne 0) { throw 'Commit all tracked release changes before packaging.' }
+if ($isStable) {
+    if ($HostedCiRunUrl -notmatch '^https://github.com/rowanjove/OCR-AI-Translator/actions/runs/(\d+)$') { throw 'Unexpected hosted CI URL.' }
+    $runId = $Matches[1]
+    $ciJson = & gh run view $runId --repo rowanjove/OCR-AI-Translator --json headSha,status,conclusion,event
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot verify hosted CI.' }
+    $ci = $ciJson | ConvertFrom-Json
+    if ($ci.headSha -ne $sourceCommit -or $ci.status -ne 'completed' -or $ci.conclusion -ne 'success' -or $ci.event -ne 'push') { throw 'Hosted CI must pass for this exact source commit.' }
+    $ciEvidence = Join-Path $root "$BuildDirectory/hosted-ci-$runId"
+    & gh run download $runId --repo rowanjove/OCR-AI-Translator --name windows-x64-test-evidence --dir $ciEvidence
+    if ($LASTEXITCODE -ne 0) { throw 'Cannot download hosted test evidence.' }
+    [xml]$hostedXml = Get-Content -LiteralPath (Join-Path $ciEvidence 'ci/ctest.xml') -Raw
+    $hostedCases = @($hostedXml.SelectNodes('//testcase'))
+    if ($hostedCases.Count -ne 10 -or @($hostedXml.SelectNodes('//failure | //error | //skipped')).Count -ne 0 -or @($hostedCases | Where-Object { $_.name -eq 'native_clipboard_isolated' }).Count -ne 1) { throw 'Hosted CI must pass all 10 tests, including isolated clipboard.' }
+}
 $exe = Join-Path $root "$BuildDirectory/Release/Translator.exe"
 $testPath = Join-Path $root $TestReport
 [xml]$xml = Get-Content -LiteralPath $testPath -Raw
@@ -17,13 +38,13 @@ $failed = 0
 $skipped = 0
 $skipNames = @()
 foreach ($case in $cases) {
-    if ($null -ne $case.SelectSingleNode('./failure')) { $failed++ }
+    if ($null -ne $case.SelectSingleNode('./failure | ./error')) { $failed++ }
     if ($null -ne $case.SelectSingleNode('./skipped')) { $skipped++; $skipNames += $case.name }
 }
 $passed = $cases.Count - $failed - $skipped
 if ($cases.Count -ne 10) { throw "Expected all 10 registered CTest cases; got $($cases.Count)." }
 if ($failed -ne 0) { throw "CTest has $failed failure(s); refusing to package." }
-if ($skipped -ne 1 -or $skipNames[0] -ne 'native_clipboard_isolated') { throw "Expected only the documented native_clipboard_isolated SKIP; got $($skipNames -join ', ')." }
+if ($skipped -gt 1 -or ($skipped -eq 1 -and $skipNames[0] -ne 'native_clipboard_isolated')) { throw "Only native_clipboard_isolated may SKIP; got $($skipNames -join ', ')." }
 
 $version = (Get-Item -LiteralPath $exe).VersionInfo.ProductVersion
 if ($version -ne $expectedVersion) { throw "Unexpected executable version: $version (expected $expectedVersion)." }
@@ -54,7 +75,7 @@ Copy-Item -LiteralPath (Join-Path $root 'docs/THIRD_PARTY_NOTICES.md') -Destinat
 @"
 # OCR AI Translator $expectedVersion 使用说明
 
-这是稳定性修复候选预发布版，不是 Stable 发布。Windows 10 x64 是本轮构建和自动化验证环境；Windows 11、干净机、真实云端 Provider、物理 IME/DPI 和完整真实 OCR 矩阵仍有未验证项。
+$(if ($isStable) { "这是 $expectedVersion 稳定版。" } else { '这是预发布版。' }) 支持和验收平台为 Windows 10 x64。开发者确认真实 Snipaste OCR 和真实云 Provider 验收通过。Windows 11、干净机、物理 IME/DPI 和多显示器完整矩阵未验证。
 
 EXE 未签名。解压到可写目录后直接运行 Translator.exe，通常无需管理员权限。打开设置 → 模型与 API，填写自己的 HTTPS 服务地址、准确模型 ID 和 API Key。密钥由当前用户 DPAPI 加密保存，不要发给他人。config.example.json 不含密钥，不要覆盖已有配置。
 
@@ -66,17 +87,21 @@ Ctrl+V 载入文字并选择目标语言。自动翻译默认关闭；开启后�
 "@ | Set-Content -LiteralPath (Join-Path $package 'USER_GUIDE.zh-CN.md') -Encoding utf8
 
 $ciDisplay = if ($HostedCiRunUrl) { $HostedCiRunUrl } else { 'No hosted CI run URL recorded.' }
+$statusLabel = if ($isStable) { 'STABLE RELEASE' } else { 'STABILITY-FIX PREVIEW CANDIDATE' }
+$acceptanceLabel = if ($isStable) { 'Release acceptance: GO.' } else { 'Candidate acceptance: GO for review. This is not a Stable release.' }
+$localCtestDisplay = if ($LocalCtestSummary) { "Latest local CTest: $LocalCtestSummary" } else { 'No additional local CTest note recorded.' }
 @"
-OCR AI Translator $expectedVersion — STABILITY-FIX PREVIEW CANDIDATE
-Candidate acceptance: GO for review. This is not a Stable release.
-Local CTest: $passed PASS / $failed FAIL / $skipped SKIP.
-Clipboard isolation skipped because CreateWindowStation returned Win32 error 5; the user's clipboard was not used.
+OCR AI Translator $expectedVersion — $statusLabel
+$acceptanceLabel
+Packaged CTest report: $passed PASS / $failed FAIL / $skipped SKIP ($TestReport).
+$localCtestDisplay
+$(if ($skipped) { "Clipboard isolation SKIP; see the local CTest report for the environment error. The user's clipboard was not used." } else { 'All local CTest cases passed, including isolated clipboard.' })
 Hosted CI status: $HostedCiStatus
 $ciDisplay
-The steady-state UI resource gate passed three consecutive runs and in the full suite. First-use settings warmup added one GDI object and render warmup added one process handle; both object sources remain unidentified. The measured 50 settings and 100 render cycles had no growth.
-Real Snipaste OCR, live cloud Provider, Windows 11, clean-machine, physical IME and mixed-DPI acceptance remain UNVERIFIED.
+The unchanged strict steady-state UI resource assertions passed. Bounded first-use resource changes are accepted; their precise object sources remain unidentified. See the release report for measured settings and render cycle results.
+The user reports PASS for real Snipaste OCR and a real Provider; this is not independently reproduced in the release workflow. Windows 11, clean-machine, physical IME and mixed-DPI acceptance remain UNVERIFIED.
 Unsigned x64 executable. No credentials, user configuration, OCR content, test tools or internal logs are included.
-"@ | Set-Content -LiteralPath (Join-Path $package 'PREVIEW.txt') -Encoding utf8
+"@ | Set-Content -LiteralPath (Join-Path $package 'RELEASE_STATUS.txt') -Encoding utf8
 
 $dumpbin = Get-ChildItem -LiteralPath (Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/2022') -Filter dumpbin.exe -Recurse -File |
     Where-Object { $_.FullName -match 'Hostx64[\\/]x64[\\/]' } | Sort-Object FullName -Descending | Select-Object -First 1
@@ -99,19 +124,18 @@ foreach ($file in @((Get-Item -LiteralPath (Join-Path $root 'CMakeLists.txt'))) 
     $relative = $file.FullName.Substring($root.Length + 1).Replace('\','/')
     $sourceHashes[$relative] = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash
 }
-$sourceCommit = (& git -C $root rev-parse HEAD).Trim()
 $info = [ordered]@{
-    version = $version; numeric_version = ($expectedVersion -replace '-preview$', '.0'); file_version = $fileVersion
+    version = $version; numeric_version = if ($expectedVersion -match '-preview$') { $expectedVersion -replace '-preview$', '.0' } else { "$expectedVersion.0" }; file_version = $fileVersion
     source_commit = $sourceCommit; platform = 'Windows x64, tested on Windows 10 build 19045'
     build = 'MSVC Release /MT C++20 /W4 /WX'; compiler_file_version = $compilerVersion
     cmake = $cmakeVersion; executable_bytes = $bytes.Length
     executable_sha256 = (Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash
     signature = [string]$signature.Status; tests = @{ PASS=$passed; FAIL=$failed; SKIP=$skipped }
     junit_sha256 = (Get-FileHash -LiteralPath $testPath -Algorithm SHA256).Hash
-    test_report_for_build = $BuildDirectory; dependencies = $dependencies
+    test_report = $TestReport; local_ctest_note = $LocalCtestSummary; dependencies = $dependencies
     system_dynamic_dependency = 'Msftedit.dll'; hosted_ci_status = $HostedCiStatus; hosted_ci_run_url = $HostedCiRunUrl
     source_inventory_sha256 = (Get-FileHash -LiteralPath (Join-Path $root 'docs/PUBLIC_FILES.txt')).Hash
-    build_source_hashes = $sourceHashes; stable = 'NOT_STABLE'; paid_provider_calls = 0
+    build_source_hashes = $sourceHashes; stable = if ($isStable) { 'STABLE' } else { 'NOT_STABLE' }; automated_paid_provider_calls = 0
 }
 $info | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $package 'BUILD_INFO.json') -Encoding utf8
 Get-ChildItem -LiteralPath $package -File | Sort-Object Name | ForEach-Object {

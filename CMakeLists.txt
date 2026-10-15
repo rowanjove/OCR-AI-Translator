@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 project(OCRAITranslator VERSION 0.9.1 LANGUAGES CXX RC)
-set(SAT_VERSION "${PROJECT_VERSION}-preview")
+set(SAT_VERSION "${PROJECT_VERSION}")
 configure_file(src/app_version.h.in generated/app_version.h @ONLY)
 if(NOT WIN32 OR NOT MSVC)
   message(FATAL_ERROR "OCR AI Translator requires Windows and MSVC (x64).")

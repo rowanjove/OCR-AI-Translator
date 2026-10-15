@@ -1,6 +1,6 @@
 # API compatibility
 
-Version: 0.9.1-preview. Claims describe current source, not a certification of
+Version: 0.9.1. Claims describe current source, not a certification of
 any cloud provider.
 
 - OpenAI Chat Completions-compatible JSON `messages`, `model`, `max_tokens`,
@@ -26,7 +26,8 @@ The setting connection test and explicitly requested `--provider-check-online`
 send a small request and can incur charges. `--provider-check` and `--diagnose`
 are offline checks. HTTP/SSE mock tests use real local WinHTTP with fictional
 credentials; they do not verify cloud billing, proxy/TLS behavior or live model
-quality. The final binary's cloud-provider acceptance remains UNVERIFIED.
+quality. Real cloud Provider acceptance is PASS according to the developer;
+this release task does not repeat billable requests or claim independent live logs.
 
 Do not attach API keys, configuration, DPAPI files, OCR text or full HTTP dumps
 to an issue. See [security](../SECURITY.md).

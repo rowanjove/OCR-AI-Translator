@@ -1,6 +1,6 @@
 # OCR AI Translator
 
-[简体中文](README.md) · **v0.9.1-preview** · [Download](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1-preview) · Apache-2.0
+[简体中文](README.md) · **v0.9.1** · [Download](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1) · Apache-2.0
 
 A lightweight native Windows translation and text-processing tool with custom
 AI APIs and extensible OCR inputs. Paste text directly, or use the currently
@@ -32,16 +32,18 @@ The app exits with its last window. Your OCR or local model service can run inde
 
 ## Download and use
 
-Download **OCR-AI-Translator-v0.9.1-preview-Win10-x64.zip** from
+Download **OCR-AI-Translator-v0.9.1-Win10-x64.zip** from
 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases), verify the adjacent checksum file, extract to a
 writable directory and run `Translator.exe`. Administrator rights are normally
-unnecessary. This is an **unsigned stability-fix preview candidate**; one
-clipboard-isolation test is skipped due to local permissions, as disclosed in
-the Release Notes and testing documentation.
+unnecessary. This is **v0.9.1 Stable**, with an **unsigned** executable.
+The supported and accepted platform is Windows 10 x64 build 19045. The developer
+confirmed real Snipaste OCR and live cloud Provider acceptance; this release's
+automation is separate evidence. See the [stable release report](docs/STABLE_RELEASE_REPORT_2026-10-15.md)
+for exact tests, final-commit CI and checksums.
 
-Locally verified environment: Windows 10 x64 build 19045. Windows 11, physical
-mixed DPI/multiple monitors, clean-machine and full human IME acceptance remain
-unverified. No x86, ARM64, Linux or macOS build is supplied.
+Windows 11, physical mixed DPI/multiple monitors, clean-machine and full human
+IME coverage remain unverified and are outside this release's acceptance scope.
+No x86, ARM64, Linux or macOS build is supplied.
 
 Open Settings → Model & API, enter your HTTPS endpoint, exact model ID and API key.
 Paste with Ctrl+V and choose a language. Automatic translation can send newly
@@ -73,7 +75,7 @@ adopting it; disable automatic translation for sensitive input. Esc cancels this
 app's wait without terminating an existing Snipaste process. OCR changes the
 clipboard; a sequence change alone cannot authenticate its source.
 
-Full real OCR acceptance is incomplete. `--from-snipaste-ocr` / the combined
+The developer confirmed real Snipaste professional OCR acceptance; automated tests use fixtures. `--from-snipaste-ocr` / the combined
 OCR→exec workflow remains on HOLD. You can perform OCR yourself, then use
 `--clipboard-text`. Paste translation requires no OCR tool.
 
@@ -112,8 +114,8 @@ ctest --test-dir build/local -C Release --output-on-failure
 ```
 
 Output: `build/local/Release/Translator.exe`. `/W4 /WX` treats warnings as errors.
-Known GUI stress failures can make the all-in-one script fail after successful
-compilation. Assertions remain intact. CI uses fictional local fixtures, not
+The all-in-one script runs every CTest case and returns failure when any test fails.
+Strict resource assertions remain intact. CI uses fictional local fixtures, not
 paid cloud APIs. Mock/native HWND tests are not human OCR/IME/physical DPI acceptance.
 See [testing](docs/TESTING.md) and [release record](docs/GITHUB_RELEASE_READINESS.md).
 

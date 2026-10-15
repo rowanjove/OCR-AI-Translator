@@ -1,6 +1,6 @@
 # OCR AI Translator
 
-[English](README.en.md) · **v0.9.1-preview** · [下载](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1-preview) · Apache-2.0
+[English](README.en.md) · **v0.9.1** · [下载](https://github.com/rowanjove/OCR-AI-Translator/releases/tag/v0.9.1) · Apache-2.0
 
 一款极轻量的原生 Windows 翻译与文本处理工具，支持自定义 AI API，围绕可扩展的 OCR 来源设计。
 直接粘贴文本即可使用；目前已实现 Snipaste OCR 适配器，后续计划接入其他 OCR 工具，并探索内置 OCR。
@@ -27,12 +27,12 @@
 
 ## 下载与使用
 
-在 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases) 下载 **OCR-AI-Translator-v0.9.1-preview-Win10-x64.zip**，
+在 [Releases](https://github.com/rowanjove/OCR-AI-Translator/releases) 下载 **OCR-AI-Translator-v0.9.1-Win10-x64.zip**，
 用同页 SHA256SUMS 校验后解压到可写目录，运行 `Translator.exe`。通常无需管理员权限。
-当前为 **稳定性修复候选预发布版**，EXE 未签名；完整测试有一个因本机权限跳过的剪贴板隔离用例，详情见 Release Notes 和测试文档。
+当前为 **v0.9.1 Stable**，支持 Windows 10 x64，EXE **未签名**。开发者已确认真实 Snipaste OCR 和真实云 Provider 验收通过；本轮自动化结果、最终提交 CI 和校验信息见 [正式发布报告](docs/STABLE_RELEASE_REPORT_2026-10-15.md)。
 
-当前本机验证环境：Windows 10 x64 build 19045。Windows 11 x64、物理混合 DPI／多屏、干净机和
-真人输入法完整验收尚未完成。未提供 x86、ARM64、Linux 或 macOS 版本。
+支持和验收平台：Windows 10 x64 build 19045。Windows 11、物理混合 DPI／多屏、干净机和
+真人输入法完整矩阵未验证，不在本轮发布承诺内。未提供 x86、ARM64、Linux 或 macOS 版本。
 
 1. 打开设置 → 模型与 API，填写自己的 HTTPS 服务地址、准确模型 ID 和 API Key。
 2. Ctrl+V 载入文字，选择目标语言。启用自动翻译时，采用输入后可立即发送；否则点击“翻译”。
@@ -63,7 +63,7 @@ Snipaste 是当前已实现的外部 OCR 来源，需要用户自行安装、授
 
 适配器调用 `snip -o ocr_clipboard`。建议开启候选确认，核对识别内容后采用；敏感文本可关闭自动翻译。
 Esc 取消本工具等待，不结束已有 Snipaste 进程。OCR 会改变剪贴板，而剪贴板变化无法单独证明来源。
-真实 OCR 全场景自动化验收尚未完成；`--from-snipaste-ocr` 和 OCR→exec 一步联动仍 HOLD。
+真实 Snipaste 专业版 OCR 已由开发者实机确认通过；自动化使用隔离夹具。`--from-snipaste-ocr` 和 OCR→exec 一步联动仍 HOLD。
 也可以先自行完成 OCR，再用 `--clipboard-text` 载入。粘贴翻译不依赖任何 OCR 工具。
 
 ## AI API 与思考模式
@@ -100,7 +100,7 @@ ctest --test-dir build/local -C Release --output-on-failure
 ```
 
 输出为 `build/local/Release/Translator.exe`。`/W4 /WX` 将警告视为错误。
-已有 GUI 压力测试失败会使一体脚本在编译成功后返回错误；断言保留，失败不会伪装为通过。
+完整脚本执行全部 CTest；资源零增长断言保留，任何测试失败都会返回错误。
 CI 使用本机夹具和虚构凭据，不调用收费模型。Mock／原生窗口测试不等于真人 OCR／IME／物理 DPI 验收。
 具体结果见 [测试说明](docs/TESTING.md) 与 [发布记录](docs/GITHUB_RELEASE_READINESS.md)。
 
